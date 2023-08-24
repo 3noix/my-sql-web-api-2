@@ -1,0 +1,17 @@
+{
+	"name": "demo-trpc",
+	"version": "1.0.0",
+	"description": "",
+	"workspaces": [
+		"api",
+		"client"
+	],
+	"scripts": {
+		"api-watch": "npm run watch --workspace=api",
+		"api-start": "npm run start --workspace=api",
+		"client-dev": "npm run dev --workspace=client",
+		"client-build": "npm run build --workspace=client",
+		"client-lint": "npm run lint --workspace=client",
+		"client-preview": "npm run preview --workspace=client"
+	}
+}

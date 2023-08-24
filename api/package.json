@@ -1,0 +1,24 @@
+{
+	"name": "demo-trpc-api",
+	"version": "1.0.0",
+	"scripts": {
+		"watch": "ts-node-dev --respawn --transpile-only ./src/main.ts",
+		"start": "ts-node --project ./tsconfig.json ./src/main.ts"
+	},
+	"devDependencies": {
+		"@types/cors": "^2.8.13",
+		"@types/express": "^4.17.17",
+		"@types/node": "^20.5.4",
+		"ts-node-dev": "^2.0.0"
+	},
+	"dependencies": {
+		"@trpc/server": "^10.38.0",
+		"body-parser": "^1.20.2",
+		"cors": "^2.8.5",
+		"drizzle-orm": "^0.28.5",
+		"express": "^4.18.2",
+		"helmet": "^7.0.0",
+		"mysql2": "^3.6.0",
+		"zod": "^3.22.2"
+	}
+}
