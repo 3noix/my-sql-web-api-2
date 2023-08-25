@@ -14,7 +14,7 @@ export const lock = trpc.procedure
 
 
 export const unlock = trpc.procedure
-.input(z.object({entryId: z.number()}))
+	.input(z.object({entryId: z.number()}))
 	.output(z.boolean())
 	.query(req => {
 		const id = req.input;
