@@ -1,9 +1,10 @@
 import {db} from "./db";
 import {entries} from "./schema";
-import {Entry, NewEntry} from "./types";
+import {Entry} from "./types";
 import {eq, sql} from "drizzle-orm";
 
 type EntryWithoutLastModif = Omit<Entry, "lastModif">;
+type NewEntry = {description: string, number?: number};
 
 
 // @1: SELECT
@@ -55,14 +56,14 @@ export async function updateEntryAndReturns(newValue: EntryWithoutLastModif): Pr
 export async function insertEntry(newEntry: NewEntry): Promise<void> {
 	await db
 		.insert(entries)
-		.values(newEntry);
+		.values({...newEntry, lastModif: "2000-01-01 00:00:00"});
 }
 
 export async function insertEntryAndReturns(newEntry: NewEntry): Promise<Entry> {
 	return await db.transaction(async (tx) => {
 		const res1 = await tx
 			.insert(entries)
-			.values(newEntry);
+			.values({...newEntry, lastModif: "2000-01-01 00:00:00"});
 
 		if (res1[0].affectedRows !== 1) {throw new Error("Failed to insert entry");}
 		const res2 = await tx

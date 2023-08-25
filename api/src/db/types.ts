@@ -10,5 +10,4 @@ export type ReturnTypeOfRelationPreparedQuery<PreparedQueryType> = PreparedQuery
 
 // @1: types infered from the SQL table
 export type Entry = typeof entries.$inferSelect;
-export type NewEntry = typeof entries.$inferInsert;
 
