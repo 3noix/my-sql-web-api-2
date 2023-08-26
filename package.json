@@ -9,9 +9,11 @@
 	"scripts": {
 		"api-watch": "npm run watch --workspace=api",
 		"api-start": "npm run start --workspace=api",
+		"api-test-sql-queries": "npm run test-sql-queries --workspace=api",
 		"client-dev": "npm run dev --workspace=client",
 		"client-build": "npm run build --workspace=client",
 		"client-lint": "npm run lint --workspace=client",
-		"client-preview": "npm run preview --workspace=client"
+		"client-preview": "npm run preview --workspace=client",
+		"client-test-trpc": "npm run test-trpc-client --workspace=client"
 	}
 }

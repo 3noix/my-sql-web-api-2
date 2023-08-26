@@ -3,7 +3,8 @@
 	"version": "1.0.0",
 	"scripts": {
 		"watch": "ts-node-dev --respawn --transpile-only ./src/main.ts",
-		"start": "ts-node --project ./tsconfig.json ./src/main.ts"
+		"start": "ts-node --project ./tsconfig.json ./src/main.ts",
+		"test-sql-queries": "ts-node ./test/test-queries.ts"
 	},
 	"devDependencies": {
 		"@types/cors": "^2.8.13",
@@ -16,6 +17,7 @@
 		"body-parser": "^1.20.2",
 		"cors": "^2.8.5",
 		"drizzle-orm": "^0.28.5",
+		"drizzle-zod": "^0.5.1",
 		"express": "^4.18.2",
 		"helmet": "^7.0.0",
 		"mysql2": "^3.6.0",

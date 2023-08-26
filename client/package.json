@@ -5,7 +5,8 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc && vite build",
-		"preview": "vite preview"
+		"preview": "vite preview",
+		"test-trpc-client": "ts-node --esm ./test/test-trpc-client.ts"
 	},
 	"dependencies": {
 		"@trpc/client": "^10.38.0",
