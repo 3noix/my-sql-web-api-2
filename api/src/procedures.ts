@@ -5,16 +5,19 @@ import * as q from "./db/queries";
 import {entrySchema} from "./db/types";
 
 const debug = false;
+const tokenExpirationTimeMs = 2 * 60 * 60 * 1000;
 
 
 // @2: internal data and helper functions
-const sessions = new Map<string,string>(); // key = token (uuid), value = user name
+const sessions = new Map<string,{userName: string, expired: NodeJS.Timeout}>(); // key = token (uuid), value = user name
 const lockers = new Map<number,string>(); // key = entry id, value = token
 
 function removeToken(input: {token: string}): boolean {
+	const session = sessions.get(input.token);
+	if (session !== undefined) {clearTimeout(session.expired);}
+
 	let count = 0;
-	const tokenWasInSessionsMap = sessions.delete(input.token);
-	if (tokenWasInSessionsMap) {count++;}
+	if (sessions.delete(input.token)) {count++;}
 
 	for (const [entryId, token] of lockers.entries()) {
 		if (token === input.token) {
@@ -42,7 +45,10 @@ export const connect = trpc.procedure
 	.query(req => {
 		if (debug) {console.log(`connect: name=${req.input.name}`);}
 		const token = randomUUID();
-		sessions.set(token, req.input.name);
+		sessions.set(token, {
+			userName: req.input.name,
+			expired: setTimeout(() => removeToken({token}), tokenExpirationTimeMs)
+		});
 		return {token};
 	});
 
@@ -71,8 +77,9 @@ export const lock = trpc.procedure
 		// check if not already locked
 		const tokenLocking = lockers.get(req.input.entryId);
 		if (tokenLocking !== undefined) {
-			const userLocking = sessions.get(tokenLocking) || "??";
-			throw new Error(`The id #${req.input.entryId} is already locked by ${userLocking}`);
+			const userLockingData = sessions.get(tokenLocking);
+			const userNameLocking = userLockingData?.userName || "??";
+			throw new Error(`The id #${req.input.entryId} is already locked by ${userNameLocking}`);
 		}
 
 		// lock it
