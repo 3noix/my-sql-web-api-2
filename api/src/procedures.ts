@@ -9,15 +9,15 @@ const debug = false;
 
 // @2: internal data and helper functions
 const sessions = new Map<string,string>(); // key = token (uuid), value = user name
-const lockers = new Map<number,{token: string, userName: string}>(); // key = entry id, value = token and user name
+const lockers = new Map<number,string>(); // key = entry id, value = token
 
 function removeToken(input: {token: string}): boolean {
 	let count = 0;
 	const tokenWasInSessionsMap = sessions.delete(input.token);
 	if (tokenWasInSessionsMap) {count++;}
 
-	for (const [entryId, session] of lockers.entries()) {
-		if (session.token === input.token) {
+	for (const [entryId, token] of lockers.entries()) {
+		if (token === input.token) {
 			lockers.delete(entryId);
 			count++;
 		}
@@ -27,7 +27,7 @@ function removeToken(input: {token: string}): boolean {
 }
 
 function tokenHasLockOn(input: {entryId: number, token: string}): boolean {
-	return lockers.get(input.entryId)?.token === input.token;
+	return lockers.get(input.entryId) === input.token;
 }
 
 
@@ -69,15 +69,14 @@ export const lock = trpc.procedure
 		if (debug) {console.log(`lock: id=${req.input.entryId}`);}
 
 		// check if not already locked
-		const userLocking = lockers.get(req.input.entryId);
-		if (userLocking !== undefined) {throw new Error(`The id #${req.input.entryId} is already locked by ${userLocking.userName}`);}
-
-		// get the corresponding user name
-		const userName = sessions.get(req.input.token);
-		if (userName === undefined) {throw new Error(`Server internal error: token referenced in lockers but not in sessions`);}
+		const tokenLocking = lockers.get(req.input.entryId);
+		if (tokenLocking !== undefined) {
+			const userLocking = sessions.get(tokenLocking) || "??";
+			throw new Error(`The id #${req.input.entryId} is already locked by ${userLocking}`);
+		}
 
 		// lock it
-		lockers.set(req.input.entryId, {token: req.input.token, userName});
+		lockers.set(req.input.entryId, req.input.token);
 		return true;
 });
 
@@ -91,11 +90,11 @@ export const unlock = trpc.procedure
 		if (debug) {console.log(`unlock: id=${req.input.entryId}`);}
 
 		// check if actually locked
-		const userLocking = lockers.get(req.input.entryId);
-		if (userLocking === undefined) {throw new Error(`The id #${req.input.entryId} is not locked`);}
+		const tokenLocking = lockers.get(req.input.entryId);
+		if (tokenLocking === undefined) {throw new Error(`The id #${req.input.entryId} is not locked`);}
 
 		// check it is locked by this token
-		if (userLocking.token !== req.input.token) {throw new Error(`The id #${req.input.entryId} is not locked from this token`);}
+		if (tokenLocking !== req.input.token) {throw new Error(`The id #${req.input.entryId} is not locked from this token`);}
 
 		// unlock it
 		lockers.delete(req.input.entryId);
