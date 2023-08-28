@@ -1,17 +1,22 @@
 import {trpc} from "./trpc";
-import {connect, disconnect, lock, unlock, getAllEntries, getEntryById, insertEntry, updateEntry, deleteEntry} from "./procedures";
+import {register, unregister, lock, unlock} from "./procedures";
+import {getAllEntries, getEntryById} from "./procedures";
+import {insertEntry, onInsert, updateEntry, onUpdate, deleteEntry, onDelete} from "./procedures";
 
 
 export const router = trpc.router({
-	connect,
-	disconnect,
+	register,
+	unregister,
 	lock,
 	unlock,
 	getAllEntries,
 	getEntryById,
 	insertEntry,
 	updateEntry,
-	deleteEntry
+	deleteEntry,
+	onInsert,
+	onUpdate,
+	onDelete
 });
 
 

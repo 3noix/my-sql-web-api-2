@@ -53,7 +53,7 @@ async function testUpdateEntryAndReturns() {
 // @1: functions for INSERT
 async function testInsertEntry() {
 	console.log("-- testInsertEntry ---------------");
-	const aze = await q.insertEntry({description: "new entry 1"});
+	await q.insertEntry({description: "new entry 1"});
 	const entries = await q.getAllEntries();
 	console.log(entries);
 }

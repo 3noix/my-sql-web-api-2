@@ -1,11 +1,10 @@
-import {trpc} from "./trpc";
+import {trpc, ee} from "./trpc";
+import {observable} from "@trpc/server/observable";
 import {z} from "zod";
 import {randomUUID} from "crypto";
 import * as q from "./db/queries";
-import {entrySchema} from "./db/types";
-
-const debug = false;
-const tokenExpirationTimeMs = 2 * 60 * 60 * 1000;
+import {Entry, entrySchema} from "./db/types";
+import {env} from "./environment";
 
 
 // @2: internal data and helper functions
@@ -34,8 +33,8 @@ function tokenHasLockOn(input: {entryId: number, token: string}): boolean {
 }
 
 
-// @1: CONNECT / DISCONNECT
-export const connect = trpc.procedure
+// @1: REGISTER / UNREGISTER
+export const register = trpc.procedure
 	.input(z.object({
 		name: z.string().min(2)
 	}))
@@ -43,24 +42,24 @@ export const connect = trpc.procedure
 		token: z.string().uuid()
 	}))
 	.query(req => {
-		if (debug) {console.log(`connect: name=${req.input.name}`);}
+		if (env.trpc.logProcCalls) {console.log(`register: name=${req.input.name}`);}
 		const token = randomUUID();
 		sessions.set(token, {
 			userName: req.input.name,
-			expired: setTimeout(() => removeToken({token}), tokenExpirationTimeMs)
+			expired: setTimeout(() => removeToken({token}), env.trpc.tokenExpirationTimeMs)
 		});
 		return {token};
 	});
 
-export const disconnect = trpc.procedure
+export const unregister = trpc.procedure
 	.input(z.object({
 		token: z.string().uuid()
 	}))
 	.query(req => {
-		if (debug) {console.log(`disconnect: token=${req.input.token}`);}
+		if (env.trpc.logProcCalls) {console.log(`unregister: token=${req.input.token}`);}
 		const token = req.input.token;
 		const tokenExisted = removeToken({token});
-		// if (!tokenExisted) {throw new Error("No active connection linked to this token");}
+		// if (!tokenExisted) {throw new Error("Unregistered token");}
 	});
 
 
@@ -72,7 +71,7 @@ export const lock = trpc.procedure
 	}))
 	.output(z.boolean())
 	.query(req => {
-		if (debug) {console.log(`lock: id=${req.input.entryId}`);}
+		if (env.trpc.logProcCalls) {console.log(`lock: id=${req.input.entryId}`);}
 
 		// check if not already locked
 		const tokenLocking = lockers.get(req.input.entryId);
@@ -94,7 +93,7 @@ export const unlock = trpc.procedure
 	}))
 	.output(z.boolean())
 	.query(req => {
-		if (debug) {console.log(`unlock: id=${req.input.entryId}`);}
+		if (env.trpc.logProcCalls) {console.log(`unlock: id=${req.input.entryId}`);}
 
 		// check if actually locked
 		const tokenLocking = lockers.get(req.input.entryId);
@@ -113,7 +112,7 @@ export const unlock = trpc.procedure
 export const getAllEntries = trpc.procedure
 	.output(z.array(entrySchema))
 	.query(async req => {
-		if (debug) {console.log(`getAllEntries`);}
+		if (env.trpc.logProcCalls) {console.log(`getAllEntries`);}
 		const entries = await q.getAllEntries();
 		return entries;
 	});
@@ -124,7 +123,7 @@ export const getEntryById = trpc.procedure
 	}))
 	.output(entrySchema)
 	.query(async req => {
-		if (debug) {console.log(`getEntry: id=${req.input.entryId}`);}
+		if (env.trpc.logProcCalls) {console.log(`getEntry: id=${req.input.entryId}`);}
 		const entry = await q.getEntryById(req.input.entryId);
 		return entry;
 	});
@@ -140,11 +139,18 @@ export const insertEntry = trpc.procedure
 		inserted: entrySchema
 	}))
 	.mutation(async req => {
-		if (debug) {console.log(`insert: description=${req.input.description}, number=${req.input.number}`);}
+		if (env.trpc.logProcCalls) {console.log(`insert: description=${req.input.description}, number=${req.input.number}`);}
 		const insertedEntry = await q.insertEntryAndReturns(req.input);
-		// TODO: notify all connected users
+		ee.emit("insert", insertedEntry);
 		return {inserted: insertedEntry};
 	});
+
+export const onInsert = trpc.procedure.subscription(() => {
+	return observable<Entry>(emit => {
+		ee.on("insert", emit.next);
+		return () => {ee.off("insert", emit.next)};
+	});
+});
 
 
 // @1: UPDATE
@@ -159,7 +165,7 @@ export const updateEntry = trpc.procedure
 		updated: entrySchema
 	}))
 	.mutation(async req => {
-		if (debug) {console.log(`update: id=${req.input.id}`);}
+		if (env.trpc.logProcCalls) {console.log(`update: id=${req.input.id}`);}
 
 		// check this entry is locked by this token
 		if (!tokenHasLockOn({entryId: req.input.id, token: req.input.token})) {
@@ -168,9 +174,16 @@ export const updateEntry = trpc.procedure
 
 		// update it and notifies
 		const updatedEntry = await q.updateEntryAndReturns(req.input);
-		// TODO: notify all connected users
+		ee.emit("update", updatedEntry);
 		return {updated: updatedEntry};
 	});
+
+export const onUpdate = trpc.procedure.subscription(() => {
+	return observable<Entry>(emit => {
+		ee.on("update", emit.next);
+		return () => {ee.off("update", emit.next)};
+	});
+});
 
 
 // @1: DELETE
@@ -183,7 +196,7 @@ export const deleteEntry = trpc.procedure
 		deletedEntryId: z.number()
 	}))
 	.mutation(async req => {
-		if (debug) {console.log(`delete: id=${req.input.entryId}`);}
+		if (env.trpc.logProcCalls) {console.log(`delete: id=${req.input.entryId}`);}
 
 		// check this entry is locked by this token
 		if (!tokenHasLockOn({entryId: req.input.entryId, token: req.input.token})) {
@@ -193,6 +206,13 @@ export const deleteEntry = trpc.procedure
 		// delete it, delete the associated lock and notifies
 		await q.deleteEntry(req.input.entryId);
 		lockers.delete(req.input.entryId);
-		// TODO: notify all connected users
+		ee.emit("delete", {deletedEntryId: req.input.entryId});
 		return {deletedEntryId: req.input.entryId};
 	});
+
+export const onDelete = trpc.procedure.subscription(() => {
+	return observable<{deletedEntryId: number}>(emit => {
+		ee.on("delete", emit.next);
+		return () => {ee.off("delete", emit.next)};
+	});
+});
