@@ -31,7 +31,9 @@ const trpcClient = trpc.createClient({
 			},
 			true: wsLink({
 				client: createWSClient({
-					url: "ws://localhost:3000"
+					url: "ws://localhost:3000",
+					onOpen:  () => {console.log("WS connection is open");;},
+					onClose: () => {console.log("WS connnection is closed");}
 				})
 			}),
 			false: httpBatchLink({

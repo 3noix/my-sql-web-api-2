@@ -5,6 +5,7 @@ import Table from "./Table";
 import FormLogin from "./FormLogin";
 import FormAddEdit, {FormAddEditData} from "./FormAddEdit";
 import {useAuthentication} from "./useAuthentication";
+import {useEntries} from "./useEntries";
 import {trpc} from "./trpc";
 import "./App.scss";
 
@@ -39,69 +40,55 @@ export default function App() {
 	// });
 
 	const auth = useAuthentication();
+	const data = useEntries();
 
 	const [selectedEntryId,  setSelectedEntryId]  = useState(-1);
 	const [modalAddEditMode, setModalAddEditMode] = useState<ModalAddEditMode>("closed");
 	const [modalAddEditData, setModalAddEditData] = useState(defaultModalData);
 
-	const qGetAllEntries = trpc.getAllEntries.useQuery(undefined, {
-		onSuccess: allEntries => {console.log("all data sent");},
+	// get all entries at startup
+	trpc.getAllEntries.useQuery(undefined, {
+		onSuccess: allEntries => {
+			data.setAllEntries(allEntries);
+			console.log("All entries sent");
+		},
 		enabled: auth.isLoggedIn
-	})
+	});
+
+	// to get the token
+	const qRegister = trpc.register.useQuery({name: auth.username}, {
+		onSuccess: data => {console.log(`Token received: ${data.token}`);},
+		enabled: auth.isLoggedIn
+	});
+	const token = qRegister.data?.token;
+
+	// on notifications
+	trpc.onInsert.useSubscription(undefined, {
+		onData: newEntry => {data.appendEntry(newEntry);},
+		enabled: auth.isLoggedIn
+	});
+	trpc.onUpdate.useSubscription(undefined, {
+		onData: updatedEntry => {data.updateEntry(updatedEntry);},
+		enabled: auth.isLoggedIn
+	});
+	trpc.onDelete.useSubscription(undefined, {
+		onData: ({deletedEntryId}) => {data.deleteEntry(deletedEntryId);},
+		enabled: auth.isLoggedIn
+	});
+
+	// mutations
 	// const qLockEntry     = trpc.lock.useMutation();
 	// const qUnlockEntry   = trpc.unlock.useMutation();
 	// const qInsertEntry   = trpc.insertEntry.useMutation();
 	// const qUpdateEntry   = trpc.updateEntry.useMutation();
 	// const qDeleteEntry   = trpc.deleteEntry.useMutation();
 
-	// const wsConnecCond = (validatedLogin !== null && validatedLogin !== "");
-	// const host = (window.location.hostname.length > 0 ? window.location.hostname : "localhost");
-
-	// const onWsOpen = useCallback(() => {console.log("connected!");}, []);
-	// const onWsError = useCallback(error => {console.log("Error: " + error);}, []);
-	// const onWsClose = useCallback(() => {console.log("disconnected!");}, []);
-
-	// const onWsMessage = useCallback(dataStr => {
-	// 	let data = JSON.parse(dataStr);
-
-	// 	if (data.type === "insert") {appendEntry(data.entry);}
-	// 	else if (data.type === "update") {updateEntry(data.entry);}
-	// 	else if (data.type === "delete") {deleteEntry(data.id);}
-	// 	else if (Array.isArray(data)) {setAllEntries(data);}
-	// 	else if (data.type === "lock") {
-	// 		if (data.status !== "success") {
-	// 			alert(`Lock request failed:\n${data.msg}`);
-	// 			setModalAddEditOpen(false);
-	// 			setModalAddEditMode("");
-	// 			setModalAddEditData(defaultModalData);
-	// 		}
-	// 		// else if (data.id === modalAddEditData.id && modalAddEditMode === "edit") {
-	// 		// 	setModalAddEditOpen(true); // if we wait the lock confirmation to show the dialog
-	// 		// }
-	// 	}
-	// 	else if (data.type === "unlock") {
-	// 		if (data.status !== "success") {
-	// 			alert(`Unlock request failed:\n${data.msg}`);
-	// 		}
-	// 	}
-	// },[setAllEntries, appendEntry, updateEntry, deleteEntry]);
-
-	// const [isConnected, sendWsText, sendWsJson] = useWebSocket(
-	// 	"ws://" + host + ":1234", wsConnecCond,
-	// 	onWsOpen, onWsMessage, onWsError, onWsClose
-	// );
-
-	// useEffect(() => {
-	// 	if (!isConnected) {return;}
-	// 	sendWsJson({userName: validatedLogin});
-	// }, [isConnected,sendWsJson]);
 
 	if (!auth.isLoggedIn) {
 		return (
 			<FormLogin/>
 		);
 	}
-
 
 	return (
 		<Root>
@@ -112,7 +99,7 @@ export default function App() {
 			</Section>
 			<Main>
 				<Table
-					entries={qGetAllEntries.data || []}
+					entries={data.entries}
 					onHeaderClicked={deselectAllRows}
 					onBodyRowClicked={selectRow}
 					selectedId={selectedEntryId}
@@ -139,7 +126,8 @@ export default function App() {
 	async function handleAddEditCancel(entryId: number) {
 		if (modalAddEditMode === "open-edit") {
 			// unlock the entry being edited
-			// await qUnlockEntry.mutate({entryId: entryId, token: "token"});
+			// if (token === undefined) {throw new Error(`A token is needed to unlock an entry`);}
+			// await qUnlockEntry.mutate({entryId: entryId, token});
 		}
 
 		// close and reset everything
@@ -149,13 +137,13 @@ export default function App() {
 
 	async function handleAddEditOk(newData: FormAddEditData) {
 		if (modalAddEditMode === "open-add") {
-			const data = {description: newData.description, number: newData.number};
-			// await qInsertEntry.mutateAsync(data);
+			// await qInsertEntry.mutateAsync(newData);
 		}
 		else if (modalAddEditMode === "open-edit") {
 			// update the entry and unlock it
-			// await qUpdateEntry.mutateAsync({...newData, token: "token"});
-			// await qUnlockEntry.mutateAsync({entryId: newData.id, token: "token"});
+			// if (token === undefined) {throw new Error(`A token is needed to update an entry`);}
+			// await qUpdateEntry.mutateAsync({...newData, token});
+			// await qUnlockEntry.mutateAsync({entryId: newData.id, token});
 		}
 
 		setModalAddEditMode("closed");
@@ -168,11 +156,12 @@ export default function App() {
 	}
 
 	async function handleUpdateEntry() {
-		let selectedEntry = qGetAllEntries.data?.find(e => e.id === selectedEntryId);
+		let selectedEntry = data.entries.find(e => e.id === selectedEntryId);
 		if (!selectedEntry) {return;}
 
 		// lock the entry to update
-		// await qLockEntry.mutateAsync({entryId: selectedEntry.id, token: "token"});
+		// if (token === undefined) {throw new Error(`A token is needed to lock an entry`);}
+		// await qLockEntry.mutateAsync({entryId: selectedEntry.id, token});
 
 		// fill and show the dialog data
 		setModalAddEditMode("open-edit");
@@ -180,12 +169,13 @@ export default function App() {
 	}
 
 	async function handleDeleteEntry() {
-		let selectedEntry = qGetAllEntries.data?.find(e => e.id === selectedEntryId);
+		let selectedEntry = data.entries.find(e => e.id === selectedEntryId);
 		if (!selectedEntry) {return;}
 
 		// lock the entry and send the delete request
-		// await qLockEntry.mutateAsync({entryId: selectedEntryId, token: "token"});
-		// await qDeleteEntry.mutateAsync({entryId: selectedEntryId, token: "token"});
+		// if (token === undefined) {throw new Error(`A token is needed to lock & delete an entry`);}
+		// await qLockEntry.mutateAsync({entryId: selectedEntryId, token});
+		// await qDeleteEntry.mutateAsync({entryId: selectedEntryId, token});
 	}
 }
 
