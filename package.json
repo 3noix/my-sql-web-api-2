@@ -5,16 +5,24 @@
 	"workspaces": [
 		"api-express-drizzle",
 		"client-react",
+		"client-vanilla",
 		"client-test"
 	],
 	"scripts": {
 		"api-watch": "npm run watch --workspace=api-express-drizzle",
 		"api-start": "npm run start --workspace=api-express-drizzle",
 		"api-test-sql-queries": "npm run test-sql-queries --workspace=api-express-drizzle",
+
 		"client-react-dev": "npm run dev --workspace=client-react",
 		"client-react-build": "npm run build --workspace=client-react",
 		"client-react-preview": "npm run preview --workspace=client-react",
 		"client-react-test": "npm run test-trpc-client --workspace=client-react",
+
+		"client-vanilla-dev": "npm run dev --workspace=client-vanilla",
+		"client-vanilla-build": "npm run build --workspace=client-vanilla",
+		"client-vanilla-preview": "npm run preview --workspace=client-vanilla",
+		"client-vanilla-test": "npm run test-trpc-client --workspace=client-vanilla",
+
 		"client-test": "npm run dev --workspace=client-test"
 	}
 }

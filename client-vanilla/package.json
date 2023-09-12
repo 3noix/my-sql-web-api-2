@@ -1,0 +1,19 @@
+{
+	"name": "client-vanilla",
+	"private": true,
+	"version": "1.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build",
+		"preview": "vite preview"
+	},
+	"dependencies": {
+		"@trpc/client": "^10.38.1"
+	},
+	"devDependencies": {
+		"sass": "^1.66.1",
+		"typescript": "^5.0.2",
+		"vite": "^4.4.5"
+	}
+}
