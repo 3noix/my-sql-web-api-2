@@ -14,7 +14,7 @@
 		"ts-node-dev": "^2.0.0"
 	},
 	"dependencies": {
-		"@trpc/server": "^10.38.0",
+		"@trpc/server": "^10.38.1",
 		"body-parser": "^1.20.2",
 		"cors": "^2.8.5",
 		"drizzle-orm": "^0.28.5",

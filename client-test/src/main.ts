@@ -30,6 +30,7 @@ async function sleep(ms: number): Promise<void> {
 
 // @2: MAIN
 async function main() {
+	await sleep(1000);
 	trpc.onInsert.subscribe(undefined, {onData: onInsert});
 	trpc.onUpdate.subscribe(undefined, {onData: onUpdate});
 	trpc.onDelete.subscribe(undefined, {onData: onDelete});
@@ -38,14 +39,14 @@ async function main() {
 	// await testRegister2();
 	// await testLockUnlock1();
 	// await testLockUnlock2();
-	await testGetAllEntries();
+	// await testGetAllEntries();
 	// await testGetEntryById();
 	// await testInsertEntry();
 	// await testUpdateEntry1();
 	// await testUpdateEntry2();
-	// await testDeleteEntry1();
+	await testDeleteEntry1();
 	// await testDeleteEntry2();
-	await sleep(5000);
+	// await sleep(5000);
 }
 
 main();
@@ -53,11 +54,11 @@ main();
 
 // @2: CALLBACKS OF NOTIFICATIONS
 function onInsert(entry: Entry): void {
-	console.log(`--> entry inserted: ${entry}`);
+	console.log(`--> entry inserted: ${JSON.stringify(entry,null,"\t")}`);
 }
 
 function onUpdate(entry: Entry): void {
-	console.log(`--> entry updated: ${entry}`);
+	console.log(`--> entry updated: ${JSON.stringify(entry,null,"\t")}`);
 }
 
 function onDelete(input: {deletedEntryId: number}): void {
@@ -84,16 +85,16 @@ async function testRegister2() {
 async function testLockUnlock1() {
 	console.log("-- testLockUnlock1 ---------------");
 	const {token} = await trpc.register.query({name: "3noix"});
-	const res = await trpc.lock.query({token, entryId: 43});
+	const res = await trpc.lock.query({token, entryId: 3});
 	await sleep(1000);
-	await trpc.unlock.query({token, entryId: 43});
+	await trpc.unlock.query({token, entryId: 3});
 	await trpc.unregister.query({token});
 }
 
 async function testLockUnlock2() {
 	console.log("-- testLockUnlock2 ---------------");
 	const {token} = await trpc.register.query({name: "3noix"});
-	await trpc.unlock.query({token, entryId: 43});
+	await trpc.unlock.query({token, entryId: 3});
 	await trpc.unregister.query({token});
 }
 
@@ -107,7 +108,7 @@ async function testGetAllEntries() {
 
 async function testGetEntryById() {
 	console.log("-- testGetEntryById ---------------");
-	const entry = await trpc.getEntryById.query({entryId: 46});
+	const entry = await trpc.getEntryById.query({entryId: 3});
 	console.log(entry);
 }
 
@@ -123,27 +124,27 @@ async function testInsertEntry() {
 // @1: function for UPDATE
 async function testUpdateEntry1() {
 	console.log("-- testUpdateEntry1 ---------------");
-	const entryBefore = await trpc.getEntryById.query({entryId: 45});
+	const entryBefore = await trpc.getEntryById.query({entryId: 5});
 	console.log(entryBefore);
 
 	const {token} = await trpc.register.query({name: "3noix"});
-	await trpc.lock.query({token, entryId: 45});
+	await trpc.lock.query({token, entryId: 5});
 
-	const entryAfter = await trpc.updateEntry.mutate({token, id: 45, description: "new description 0", number: 9999});
+	const entryAfter = await trpc.updateEntry.mutate({token, id: 5, description: "updated description", number: 9999});
 	console.log(entryAfter);
 
-	await trpc.unlock.query({token, entryId: 45});
+	await trpc.unlock.query({token, entryId: 5});
 	await trpc.unregister.query({token});
 }
 
 async function testUpdateEntry2() {
 	console.log("-- testUpdateEntry2 ---------------");
-	const entryBefore = await trpc.getEntryById.query({entryId: 45});
+	const entryBefore = await trpc.getEntryById.query({entryId: 5});
 	console.log(entryBefore);
 
 	const {token} = await trpc.register.query({name: "3noix"});
 
-	const entryAfter = await trpc.updateEntry.mutate({token, id: 45, description: "new description 0", number: 9999});
+	const entryAfter = await trpc.updateEntry.mutate({token, id: 5, description: "other description", number: 9999});
 	console.log(entryAfter);
 
 	await trpc.unregister.query({token});
@@ -155,8 +156,8 @@ async function testDeleteEntry1() {
 	console.log("-- testDeleteEntry1 ---------------");
 	const entriesBefore = await trpc.getAllEntries.query();
 	const {token} = await trpc.register.query({name: "3noix"});
-	await trpc.lock.query({token, entryId: 59});
-	await trpc.deleteEntry.mutate({token, entryId: 59});
+	await trpc.lock.query({token, entryId: 5});
+	await trpc.deleteEntry.mutate({token, entryId: 5});
 	await trpc.unregister.query({token});
 	const entriesAfter = await trpc.getAllEntries.query();
 	console.log(`Before: ${entriesBefore.map(e=>e.id.toString()).join(",")}`);
@@ -167,7 +168,7 @@ async function testDeleteEntry2() {
 	console.log("-- testDeleteEntry2 ---------------");
 	const entriesBefore = await trpc.getAllEntries.query();
 	const {token} = await trpc.register.query({name: "3noix"});
-	await trpc.deleteEntry.mutate({token, entryId: 59});
+	await trpc.deleteEntry.mutate({token, entryId: 5});
 	await trpc.unregister.query({token});
 	const entriesAfter = await trpc.getAllEntries.query();
 	console.log(`Before: ${entriesBefore.map(e=>e.id.toString()).join(",")}`);
