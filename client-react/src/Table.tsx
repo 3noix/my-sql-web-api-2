@@ -1,5 +1,5 @@
 import "./Table.scss";
-import {Entry} from "../../api/src/db/types";
+import {Entry} from "../../api-express-drizzle/src/db/types";
 
 
 export type TableProps = {

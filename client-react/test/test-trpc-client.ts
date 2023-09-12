@@ -1,6 +1,6 @@
 import {createTRPCProxyClient, createWSClient, splitLink, httpBatchLink, wsLink} from "@trpc/client";
-import type {Router} from "../../api/src/router";
-import {Entry} from "../../api/src/db/types";
+import type {Router} from "../../api-express-drizzle/src/router";
+import {Entry} from "../../api-express-drizzle/src/db/types";
 
 
 const trpc = createTRPCProxyClient<Router>({

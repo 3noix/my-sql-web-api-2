@@ -3,17 +3,17 @@
 	"version": "1.0.0",
 	"description": "",
 	"workspaces": [
-		"api",
-		"client"
+		"api-express-drizzle",
+		"client-react"
 	],
 	"scripts": {
-		"api-watch": "npm run watch --workspace=api",
-		"api-start": "npm run start --workspace=api",
-		"api-test-sql-queries": "npm run test-sql-queries --workspace=api",
-		"client-dev": "npm run dev --workspace=client",
-		"client-build": "npm run build --workspace=client",
-		"client-lint": "npm run lint --workspace=client",
-		"client-preview": "npm run preview --workspace=client",
-		"client-test-trpc": "npm run test-trpc-client --workspace=client"
+		"api-watch": "npm run watch --workspace=api-express-drizzle",
+		"api-start": "npm run start --workspace=api-express-drizzle",
+		"api-test-sql-queries": "npm run test-sql-queries --workspace=api-express-drizzle",
+		"client-react-dev": "npm run dev --workspace=client-react",
+		"client-react-build": "npm run build --workspace=client-react",
+		"client-react-lint": "npm run lint --workspace=client-react",
+		"client-react-preview": "npm run preview --workspace=client-react",
+		"client-react-test": "npm run test-trpc-client --workspace=client-react"
 	}
 }
