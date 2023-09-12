@@ -73,6 +73,11 @@ export const lock = trpc.procedure
 	.query(req => {
 		if (env.trpc.logProcCalls) {console.log(`lock: id=${req.input.entryId}`);}
 
+		// check this token has been attributed
+		if (!sessions.has(req.input.token)) {
+			throw new Error(`Unknown token: ${req.input.token}`);
+		}
+
 		// check if not already locked
 		const tokenLocking = lockers.get(req.input.entryId);
 		if (tokenLocking !== undefined) {
