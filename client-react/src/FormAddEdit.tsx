@@ -17,11 +17,16 @@ const Overlay = styled.div`
 	align-items: center;
 `;
 
+export type FormAddEditData = {
+	id: number;
+	description: string;
+	number: number;
+};
 
 export type FormAddEditProps = {
 	isOpen: boolean;
-	data: {id: number, description: string, number: number};
-	setData: React.Dispatch<React.SetStateAction<{id: number, description: string, number: number}>>;
+	data: FormAddEditData;
+	setData: React.Dispatch<React.SetStateAction<FormAddEditData>>;
 	onOk: () => void;
 	onCancel: () => void;
 };

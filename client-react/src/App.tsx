@@ -4,7 +4,7 @@ import Button from "./Button";
 import Table from "./Table";
 import FormLogin from "./FormLogin";
 import FormAddEdit from "./FormAddEdit";
-import useMemorization from "./useMemorization";
+import {useAuthentication} from "./useAuthentication";
 import {trpc} from "./trpc";
 import "./App.scss";
 
@@ -27,7 +27,8 @@ const Main = styled.main`
 `;
 
 
-let defaultModalData = {id: 0, description: "", number: 0};
+type ModalAddEditMode = "closed" | "open-add" | "open-edit";
+const defaultModalData = {id: 0, description: "", number: 0};
 // let count = 0;
 
 
@@ -37,21 +38,23 @@ export default function App() {
 	// 	console.log("render", count);
 	// });
 
-	const [login,            setLogin]            = useState("");
-	const [modalLoginOpen,   setModalLoginOpen]   = useState(true);
+	const auth = useAuthentication();
+
 	const [selectedEntryId,  setSelectedEntryId]  = useState(-1);
 	const [modalAddEditOpen, setModalAddEditOpen] = useState(false);
-	const [modalAddEditMode, setModalAddEditMode] = useState("");
+	const [modalAddEditMode, setModalAddEditMode] = useState<ModalAddEditMode>("closed");
 	const [modalAddEditData, setModalAddEditData] = useState(defaultModalData);
 
-	const qGetAllEntries = trpc.getAllEntries.useQuery();
-	const qLockEntry     = trpc.lock.useMutation();
-	const qUnlockEntry   = trpc.unlock.useMutation();
-	const qInsertEntry   = trpc.insertEntry.useMutation();
-	const qUpdateEntry   = trpc.updateEntry.useMutation();
-	const qDeleteEntry   = trpc.deleteEntry.useMutation();
+	const qGetAllEntries = trpc.getAllEntries.useQuery(undefined, {
+		onSuccess: allEntries => {console.log("all data sent");},
+		enabled: auth.isLoggedIn
+	})
+	// const qLockEntry     = trpc.lock.useMutation();
+	// const qUnlockEntry   = trpc.unlock.useMutation();
+	// const qInsertEntry   = trpc.insertEntry.useMutation();
+	// const qUpdateEntry   = trpc.updateEntry.useMutation();
+	// const qDeleteEntry   = trpc.deleteEntry.useMutation();
 
-	const validatedLogin = useMemorization(login, modalLoginOpen);
 	// const wsConnecCond = (validatedLogin !== null && validatedLogin !== "");
 	// const host = (window.location.hostname.length > 0 ? window.location.hostname : "localhost");
 
@@ -95,6 +98,12 @@ export default function App() {
 	// }, [isConnected,sendWsJson]);
 	const isConnected = false;
 
+	if (!auth.isLoggedIn) {
+		return (
+			<FormLogin/>
+		);
+	}
+
 
 	return (
 		<Root>
@@ -111,12 +120,6 @@ export default function App() {
 					selectedId={selectedEntryId}
 				/>
 			</Main>
-			<FormLogin
-				isOpen={modalLoginOpen}
-				login={login}
-				setLogin={setLogin}
-				onOk={() => setModalLoginOpen(false)}
-			/>
 			<FormAddEdit
 				isOpen={modalAddEditOpen}
 				data={modalAddEditData}
@@ -137,14 +140,14 @@ export default function App() {
 	}
 
 	async function handleAddEditCancel() {
-		if (modalAddEditMode === "edit") {
+		if (modalAddEditMode === "open-edit") {
 			// unlock the entry being edited
-			await qUnlockEntry.mutate({entryId: modalAddEditData.id, token: "token"});
+			// await qUnlockEntry.mutate({entryId: modalAddEditData.id, token: "token"});
 		}
 
 		// close and reset everything
 		setModalAddEditOpen(false);
-		setModalAddEditMode("");
+		setModalAddEditMode("closed");
 		setModalAddEditData(defaultModalData);
 	}
 
@@ -152,23 +155,23 @@ export default function App() {
 		// remark: the input (i.e. modalAddEditData) is checked inside the dialog
 		setModalAddEditOpen(false);
 
-		if (modalAddEditMode === "add") {
+		if (modalAddEditMode === "open-add") {
 			let data = {description: modalAddEditData.description, number: modalAddEditData.number};
-			await qInsertEntry.mutateAsync(data);
+			// await qInsertEntry.mutateAsync(data);
 		}
-		else if (modalAddEditMode === "edit") {
+		else if (modalAddEditMode === "open-edit") {
 			// update the entry and unlock it
-			await qUpdateEntry.mutateAsync({...modalAddEditData, token: "token"});
-			await qUnlockEntry.mutateAsync({entryId: modalAddEditData.id, token: "token"});
+			// await qUpdateEntry.mutateAsync({...modalAddEditData, token: "token"});
+			// await qUnlockEntry.mutateAsync({entryId: modalAddEditData.id, token: "token"});
 		}
 
-		setModalAddEditMode("");
+		setModalAddEditMode("closed");
 		setModalAddEditData(defaultModalData);
 	}
 
 	function handleAddEntry() {
 		setModalAddEditOpen(true);
-		setModalAddEditMode("add");
+		setModalAddEditMode("open-add");
 		setModalAddEditData(defaultModalData);
 	}
 
@@ -177,10 +180,10 @@ export default function App() {
 		if (!selectedEntry) {return;}
 
 		// lock the entry to update
-		await qLockEntry.mutateAsync({entryId: selectedEntry.id, token: "token"});
+		// await qLockEntry.mutateAsync({entryId: selectedEntry.id, token: "token"});
 
 		// fill and show the dialog data
-		setModalAddEditMode("edit");
+		setModalAddEditMode("open-edit");
 		setModalAddEditData({id: selectedEntry.id, description: selectedEntry.description, number: selectedEntry.number});
 		setModalAddEditOpen(true);
 	}
@@ -190,8 +193,8 @@ export default function App() {
 		if (!selectedEntry) {return;}
 
 		// lock the entry and send the delete request
-		await qLockEntry.mutateAsync({entryId: selectedEntryId, token: "token"});
-		await qDeleteEntry.mutateAsync({entryId: selectedEntryId, token: "token"});
+		// await qLockEntry.mutateAsync({entryId: selectedEntryId, token: "token"});
+		// await qDeleteEntry.mutateAsync({entryId: selectedEntryId, token: "token"});
 	}
 }
 
