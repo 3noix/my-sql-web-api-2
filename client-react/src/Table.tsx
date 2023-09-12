@@ -4,16 +4,16 @@ import {Entry} from "../../api-express-drizzle/src/db/types";
 
 export type TableProps = {
 	entries: Entry[];
-	deselectAllRows: () => void;
-	selectRow: (entryId: number) => void;
+	onHeaderClicked: () => void;
+	onBodyRowClicked: (entryId: number) => void;
 	selectedId: number;
 };
 
 
-export default function Table({entries, deselectAllRows, selectRow, selectedId}: TableProps) {
+export default function Table({entries, onHeaderClicked, onBodyRowClicked, selectedId}: TableProps) {
 	return (
 		<table>
-			<thead onClick={deselectAllRows}>
+			<thead onClick={onHeaderClicked}>
 				<tr>
 					<th>Id</th>
 					<th>Description</th>
@@ -23,7 +23,7 @@ export default function Table({entries, deselectAllRows, selectRow, selectedId}:
 			</thead>
 			<tbody>
 				{entries.map(e => (
-					<tr key={e.id} onClick={() => selectRow(e.id)} className={e.id === selectedId ? "selected" : undefined}>
+					<tr key={e.id} onClick={() => onBodyRowClicked(e.id)} className={e.id === selectedId ? "selected" : undefined}>
 						<td>{e.id}</td>
 						<td>{e.description}</td>
 						<td>{e.number}</td>

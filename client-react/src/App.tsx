@@ -5,7 +5,7 @@ import Table from "./Table";
 import FormLogin from "./FormLogin";
 import FormAddEdit from "./FormAddEdit";
 import useMemorization from "./useMemorization";
-import useEntries from "./useEntries";
+import {trpc} from "./trpc";
 import "./App.scss";
 
 
@@ -43,9 +43,13 @@ export default function App() {
 	const [modalAddEditOpen, setModalAddEditOpen] = useState(false);
 	const [modalAddEditMode, setModalAddEditMode] = useState("");
 	const [modalAddEditData, setModalAddEditData] = useState(defaultModalData);
-	
-	const {entries, setAllEntries, appendEntry, updateEntry, deleteEntry} = useEntries();
 
+	const qGetAllEntries = trpc.getAllEntries.useQuery();
+	const qLockEntry     = trpc.lock.useMutation();
+	const qUnlockEntry   = trpc.unlock.useMutation();
+	const qInsertEntry   = trpc.insertEntry.useMutation();
+	const qUpdateEntry   = trpc.updateEntry.useMutation();
+	const qDeleteEntry   = trpc.deleteEntry.useMutation();
 
 	const validatedLogin = useMemorization(login, modalLoginOpen);
 	// const wsConnecCond = (validatedLogin !== null && validatedLogin !== "");
@@ -101,9 +105,9 @@ export default function App() {
 			</Section>
 			<Main>
 				<Table
-					entries={entries}
-					deselectAllRows={deselectAllRows}
-					selectRow={selectRow}
+					entries={qGetAllEntries.data || []}
+					onHeaderClicked={deselectAllRows}
+					onBodyRowClicked={selectRow}
 					selectedId={selectedEntryId}
 				/>
 			</Main>
@@ -132,10 +136,10 @@ export default function App() {
 		setSelectedEntryId(-1);
 	}
 
-	function handleAddEditCancel() {
+	async function handleAddEditCancel() {
 		if (modalAddEditMode === "edit") {
 			// unlock the entry being edited
-			// sendWsJson({rqtType: "unlock", rqtData: modalAddEditData.id});
+			await qUnlockEntry.mutate({entryId: modalAddEditData.id, token: "token"});
 		}
 
 		// close and reset everything
@@ -144,18 +148,18 @@ export default function App() {
 		setModalAddEditData(defaultModalData);
 	}
 
-	function handleAddEditOk() {
+	async function handleAddEditOk() {
 		// remark: the input (i.e. modalAddEditData) is checked inside the dialog
 		setModalAddEditOpen(false);
 
 		if (modalAddEditMode === "add") {
 			let data = {description: modalAddEditData.description, number: modalAddEditData.number};
-			// sendWsJson({rqtType: "insert", rqtData: data});
+			await qInsertEntry.mutateAsync(data);
 		}
 		else if (modalAddEditMode === "edit") {
 			// update the entry and unlock it
-			// sendWsJson({rqtType: "update", rqtData: modalAddEditData});
-			// sendWsJson({rqtType: "unlock", rqtData: modalAddEditData.id});
+			await qUpdateEntry.mutateAsync({...modalAddEditData, token: "token"});
+			await qUnlockEntry.mutateAsync({entryId: modalAddEditData.id, token: "token"});
 		}
 
 		setModalAddEditMode("");
@@ -168,26 +172,26 @@ export default function App() {
 		setModalAddEditData(defaultModalData);
 	}
 
-	function handleUpdateEntry() {
-		let selectedEntry = entries.find(e => e.id === selectedEntryId);
+	async function handleUpdateEntry() {
+		let selectedEntry = qGetAllEntries.data?.find(e => e.id === selectedEntryId);
 		if (!selectedEntry) {return;}
 
 		// lock the entry to update
-		// sendWsJson({rqtType: "lock", rqtData: selectedEntry.id});
-		
+		await qLockEntry.mutateAsync({entryId: selectedEntry.id, token: "token"});
+
 		// fill and show the dialog data
 		setModalAddEditMode("edit");
 		setModalAddEditData({id: selectedEntry.id, description: selectedEntry.description, number: selectedEntry.number});
 		setModalAddEditOpen(true);
 	}
 
-	function handleDeleteEntry() {
-		let selectedEntry = entries.find(e => e.id === selectedEntryId);
+	async function handleDeleteEntry() {
+		let selectedEntry = qGetAllEntries.data?.find(e => e.id === selectedEntryId);
 		if (!selectedEntry) {return;}
 
 		// lock the entry and send the delete request
-		// sendWsJson({rqtType: "lock", rqtData: selectedEntryId});
-		// sendWsJson({rqtType: "delete", rqtData: selectedEntryId});
+		await qLockEntry.mutateAsync({entryId: selectedEntryId, token: "token"});
+		await qDeleteEntry.mutateAsync({entryId: selectedEntryId, token: "token"});
 	}
 }
 

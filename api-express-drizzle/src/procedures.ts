@@ -70,7 +70,7 @@ export const lock = trpc.procedure
 		token: z.string().uuid()
 	}))
 	.output(z.boolean())
-	.query(req => {
+	.mutation(req => {
 		if (env.trpc.logProcCalls) {console.log(`lock: id=${req.input.entryId}`);}
 
 		// check this token has been attributed
@@ -97,7 +97,7 @@ export const unlock = trpc.procedure
 		token: z.string().uuid()
 	}))
 	.output(z.boolean())
-	.query(req => {
+	.mutation(req => {
 		if (env.trpc.logProcCalls) {console.log(`unlock: id=${req.input.entryId}`);}
 
 		// check if actually locked
