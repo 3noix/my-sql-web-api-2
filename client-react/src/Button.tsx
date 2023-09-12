@@ -4,14 +4,14 @@ import "./Button.scss";
 
 export type ButtonProps = {
 	iconClass: string;
-	disabled: boolean;
+	disabled?: boolean;
 	onClick: React.MouseEventHandler;
 };
 
 
 export default function Button({iconClass, disabled, onClick}: ButtonProps) {
 	return (
-		<button type="button" onClick={onClick} disabled={disabled}>
+		<button type="button" onClick={onClick} disabled={disabled || false}>
 			<i className={iconClass}></i>
 		</button>
 	);

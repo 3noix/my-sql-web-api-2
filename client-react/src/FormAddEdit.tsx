@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useRef} from "react";
 import ReactDOM from "react-dom";
 import styled from "styled-components";
 import "./FormAddEdit.scss";
@@ -25,62 +25,60 @@ export type FormAddEditData = {
 
 export type FormAddEditProps = {
 	isOpen: boolean;
-	data: FormAddEditData;
-	setData: React.Dispatch<React.SetStateAction<FormAddEditData>>;
-	onOk: () => void;
-	onCancel: () => void;
+	initialData: FormAddEditData;
+	onOk: (newData: FormAddEditData) => void;
+	onCancel: (entryId: number) => void;
 };
 
 
-export default function FormAddEdit({isOpen, data, setData, onOk, onCancel}: FormAddEditProps) {
+export default function FormAddEdit({isOpen, initialData, onOk, onCancel}: FormAddEditProps) {
 	if (!isOpen) {return null;}
+
+	const descriptionRef = useRef<HTMLInputElement>(null);
+	const numberRef = useRef<HTMLInputElement>(null);
 
 	return ReactDOM.createPortal(
 		<Overlay>
-			<form className="add-edit" onSubmit={handleSubmit}>
+			<form className="add-edit">
 				<div className="for-field">
 					<label htmlFor="description">Description:</label>
-					<input autoFocus type="text" name="description" id="description"
-						value={data.description}
-						onChange={handleDescriptionChange}
+					<input type="text" name="description" id="description"
+						defaultValue={initialData.description}
 						onKeyDown={handleKeyDown}
+						ref={descriptionRef}
+						autoFocus
 					/>
 				</div>
 				<div className="for-field">
 					<label htmlFor="number">Number:</label>
-					<input type="type" pattern="[0-9]+" name="number" id="number"
-						value={Number.isNaN(data.number) ? "" : data.number}
-						onChange={handleNumberChange}
+					<input type="text" pattern="[0-9]+" name="number" id="number"
+						defaultValue={Number.isNaN(initialData.number) ? "" : initialData.number}
 						onKeyDown={handleKeyDown}
+						ref={numberRef}
 					/>
 				</div>
 				<div className="for-buttons">
 					<button type="button" id="ok" onClick={handleOk}>Ok</button>
 				</div>
-				<div className="close-button" onClick={onCancel}/>
+				<div className="close-button" onClick={handleCancel}/>
 			</form>
 		</Overlay>,
 		document.getElementById("portalAddEditModal") as HTMLElement
 	);
 
-	// TODO: add some input checks and errors display
-	function handleDescriptionChange(event: React.ChangeEvent<HTMLInputElement>) {
-		setData(x => ({...x, description: event.target.value}));
-	}
-
-	function handleNumberChange(event: React.ChangeEvent<HTMLInputElement>) {
-		setData(x => ({...x, number: parseInt(event.target.value)}));
-	}
-
 	function handleOk() {
-		if (data.description.length === 0) {return;}
-		if (Number.isNaN(data.number) || data.number === 0) {return;}
-		onOk();
+		// checks
+		const description = descriptionRef.current?.value || "";
+		const number = parseInt(numberRef.current?.value || "");
+		if (description.length === 0) {return;}
+		if (Number.isNaN(number)) {return;}
+
+		// execute the callback with the new data
+		onOk({id: initialData.id, description, number});
 	}
 
-	function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-		event.preventDefault();
-		handleOk();
+	function handleCancel() {
+		onCancel(initialData.id);
 	}
 
 	function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {

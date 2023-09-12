@@ -3,7 +3,7 @@ import styled from "styled-components";
 import Button from "./Button";
 import Table from "./Table";
 import FormLogin from "./FormLogin";
-import FormAddEdit from "./FormAddEdit";
+import FormAddEdit, {FormAddEditData} from "./FormAddEdit";
 import {useAuthentication} from "./useAuthentication";
 import {trpc} from "./trpc";
 import "./App.scss";
@@ -41,7 +41,6 @@ export default function App() {
 	const auth = useAuthentication();
 
 	const [selectedEntryId,  setSelectedEntryId]  = useState(-1);
-	const [modalAddEditOpen, setModalAddEditOpen] = useState(false);
 	const [modalAddEditMode, setModalAddEditMode] = useState<ModalAddEditMode>("closed");
 	const [modalAddEditData, setModalAddEditData] = useState(defaultModalData);
 
@@ -96,7 +95,6 @@ export default function App() {
 	// 	if (!isConnected) {return;}
 	// 	sendWsJson({userName: validatedLogin});
 	// }, [isConnected,sendWsJson]);
-	const isConnected = false;
 
 	if (!auth.isLoggedIn) {
 		return (
@@ -108,9 +106,9 @@ export default function App() {
 	return (
 		<Root>
 			<Section>
-				<Button iconClass="fas fa-plus"       disabled={!isConnected} onClick={handleAddEntry}/>
-				<Button iconClass="fas fa-pencil-alt" disabled={!isConnected} onClick={handleUpdateEntry}/>
-				<Button iconClass="fas fa-minus"      disabled={!isConnected} onClick={handleDeleteEntry}/>
+				<Button iconClass="fas fa-plus"       onClick={handleAddEntry}/>
+				<Button iconClass="fas fa-pencil-alt" onClick={handleUpdateEntry}/>
+				<Button iconClass="fas fa-minus"      onClick={handleDeleteEntry}/>
 			</Section>
 			<Main>
 				<Table
@@ -121,9 +119,8 @@ export default function App() {
 				/>
 			</Main>
 			<FormAddEdit
-				isOpen={modalAddEditOpen}
-				data={modalAddEditData}
-				setData={setModalAddEditData}
+				isOpen={modalAddEditMode != "closed"}
+				initialData={modalAddEditData}
 				onOk={handleAddEditOk}
 				onCancel={handleAddEditCancel}
 			/>
@@ -139,30 +136,26 @@ export default function App() {
 		setSelectedEntryId(-1);
 	}
 
-	async function handleAddEditCancel() {
+	async function handleAddEditCancel(entryId: number) {
 		if (modalAddEditMode === "open-edit") {
 			// unlock the entry being edited
-			// await qUnlockEntry.mutate({entryId: modalAddEditData.id, token: "token"});
+			// await qUnlockEntry.mutate({entryId: entryId, token: "token"});
 		}
 
 		// close and reset everything
-		setModalAddEditOpen(false);
 		setModalAddEditMode("closed");
 		setModalAddEditData(defaultModalData);
 	}
 
-	async function handleAddEditOk() {
-		// remark: the input (i.e. modalAddEditData) is checked inside the dialog
-		setModalAddEditOpen(false);
-
+	async function handleAddEditOk(newData: FormAddEditData) {
 		if (modalAddEditMode === "open-add") {
-			let data = {description: modalAddEditData.description, number: modalAddEditData.number};
+			const data = {description: newData.description, number: newData.number};
 			// await qInsertEntry.mutateAsync(data);
 		}
 		else if (modalAddEditMode === "open-edit") {
 			// update the entry and unlock it
-			// await qUpdateEntry.mutateAsync({...modalAddEditData, token: "token"});
-			// await qUnlockEntry.mutateAsync({entryId: modalAddEditData.id, token: "token"});
+			// await qUpdateEntry.mutateAsync({...newData, token: "token"});
+			// await qUnlockEntry.mutateAsync({entryId: newData.id, token: "token"});
 		}
 
 		setModalAddEditMode("closed");
@@ -170,7 +163,6 @@ export default function App() {
 	}
 
 	function handleAddEntry() {
-		setModalAddEditOpen(true);
 		setModalAddEditMode("open-add");
 		setModalAddEditData(defaultModalData);
 	}
@@ -185,7 +177,6 @@ export default function App() {
 		// fill and show the dialog data
 		setModalAddEditMode("open-edit");
 		setModalAddEditData({id: selectedEntry.id, description: selectedEntry.description, number: selectedEntry.number});
-		setModalAddEditOpen(true);
 	}
 
 	async function handleDeleteEntry() {
