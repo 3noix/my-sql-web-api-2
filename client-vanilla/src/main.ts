@@ -6,90 +6,129 @@ import {trpc} from "./trpc";
 
 // @1: init
 html.setButtonsEnabled(false);
-const {token} = await trpc.register.query({name: "3noix"});
+const {token} = await trpc.register.query({name: "client-vanilla"});
 const entries = await trpc.getAllEntries.query();
 for (const e of entries) {html.appendEntryInHtml(e);}
 html.setButtonsEnabled(true);
 
 
 // @1: add / edit / remove buttons callbacks
-type Mode = "none" | "add" | "edit";
-let mode: Mode = "none";
+type Mode = "closed" | "open-add" | "open-edit";
+let mode: Mode = "closed";
 
 el.buttonAdd.addEventListener("click", e => {
 	// reset and display the dialog
-	mode = "add";
-	el.idInput.valueAsNumber = 0;
-	el.descriptionInput.value = "";
-	el.numberInput.valueAsNumber = 0;
+	mode = "open-add";
+	html.setDialogEntry({id: 0, description: "", number: 0});
 	html.setDialogVisible(true);
 });
 
 el.buttonEdit.addEventListener("click", async (e) => {
-	const selectedRow = document.querySelector("tbody tr.selected");
-	if (selectedRow == null) {return;}
+	const selectedEntry = html.selectedEntry();
+	if (selectedEntry == null) {return;}
 
-	// lock the entry to update
-	const id = parseInt((selectedRow.querySelector("td:nth-child(1)") as HTMLTableElement).innerHTML);
-	await trpc.lock.mutate({entryId: id, token});
-	html.setDialogVisible(true);
+	try {
+		// lock the entry to update
+		await trpc.lock.mutate({entryId: selectedEntry.id, token});
+		html.setDialogVisible(true);
 
-	// fill and display the dialog
-	mode = "edit";
-	el.idInput.valueAsNumber = id;
-	el.descriptionInput.value = (selectedRow.querySelector("td:nth-child(2)") as HTMLTableElement).innerHTML;
-	el.numberInput.value = (selectedRow.querySelector("td:nth-child(3)") as HTMLTableElement).innerHTML;
+		// fill and display the dialog
+		mode = "open-edit";
+		html.setDialogEntry(selectedEntry);
+	}
+	catch (error) {
+		alert(error);
+	}
 });
 
 el.buttonRemove.addEventListener("click", async (e) => {
-	const selectedRow = document.querySelector("tbody tr.selected");
-	if (selectedRow == null) {return;}
+	const selectedEntry = html.selectedEntry();
+	if (selectedEntry == null) {return;}
 
-	// lock the entry to delete
-	let id = parseInt((selectedRow.querySelector("td:nth-child(1)") as HTMLTableElement).innerHTML);
-	await trpc.lock.mutate({entryId: id, token});
+	try {
+		// lock the entry to delete
+		await trpc.lock.mutate({entryId: selectedEntry.id, token});
 
-	// send delete request
-	await trpc.deleteEntry.mutate({entryId: id, token});
+		// send delete request
+		await trpc.deleteEntry.mutate({entryId: selectedEntry.id, token});
+	}
+	catch (error) {
+		alert(error);
+	}
 });
 
 
-// @1: dialog buttons callbacks
-el.buttonOk.addEventListener("click", async (e) => {
-	if (el.descriptionInput.value.length === 0 || el.numberInput.value.length === 0) {return;}
+// @1: dialog callbacks
+async function handleAddEditOk() {
+	const entryFromDialog = html.getDialogEntry();
+	if (entryFromDialog.description.length === 0 || isNaN(entryFromDialog.number)) {return;}
 	html.setDialogVisible(false);
 	
-	if (mode === "add") {
+	if (mode === "open-add") {
+		await handleAddOk();
+	}
+	else if (mode === "open-edit") {
+		await handleEditOk();
+	}
+}
+
+async function handleAddOk() {
+	try {
+		const entryFromDialog = html.getDialogEntry();
 		await trpc.insertEntry.mutate({
-			description: el.descriptionInput.value,
-			number: el.numberInput.valueAsNumber
+			description: entryFromDialog.description,
+			number: entryFromDialog.number
 		});
 	}
-	else if (mode === "edit") {
-		const id = parseInt(el.idInput.value);
-		await trpc.updateEntry.mutate({
-			id,
-			description: el.descriptionInput.value,
-			number: el.numberInput.valueAsNumber,
-			token
-		});
+	catch (error) {
+		alert(error);
+	}
+	finally {
+		mode = "closed";
+	}
+}
 
+async function handleEditOk() {
+	try {
+		const entryFromDialog = html.getDialogEntry();
+		await trpc.updateEntry.mutate({...entryFromDialog, token});
+	
 		// unlock the updated entry
-		await trpc.unlock.mutate({entryId: id, token});
+		await trpc.unlock.mutate({entryId: entryFromDialog.id, token});
 	}
-
-	mode = "none";
-});
-
-el.buttonCancel.addEventListener("click", async (e) => {
-	if (mode === "edit") {
-		// unlock the entry being edited
-		await trpc.unlock.mutate({entryId: el.idInput.valueAsNumber, token});
+	catch (error) {
+		alert(error);
 	}
+	finally {
+		mode = "closed";
+	}
+}
 
-	html.setDialogVisible(false);
-	mode = "none";
-});
+async function handleAddEditCancel() {
+	try {
+		if (mode === "open-edit") {
+			// unlock the entry being edited
+			const entryFromDialog = html.getDialogEntry();
+			await trpc.unlock.mutate({entryId: entryFromDialog.id, token});
+		}
+	}
+	catch (error) {
+		alert(error);
+	}
+	finally {
+		html.setDialogVisible(false);
+		mode = "closed";
+	}
+}
+
+function handleAddEditKeyDown(event: KeyboardEvent) {
+	if (event.key === "Enter") {handleAddEditOk();}
+	if (event.key === "Escape") {handleAddEditCancel();}
+}
+
+el.buttonOk.addEventListener("click", handleAddEditOk);
+el.buttonCancel.addEventListener("click", handleAddEditCancel);
+el.form.addEventListener("keydown", handleAddEditKeyDown);
 
 
 // @1: other callbacks

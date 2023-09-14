@@ -39,21 +39,19 @@ export default function FormAddEdit({isOpen, initialData, onOk, onCancel}: FormA
 
 	return ReactDOM.createPortal(
 		<Overlay>
-			<form className="add-edit">
+			<form className="add-edit" onKeyDown={handleKeyDown}>
 				<div className="for-field">
 					<label htmlFor="description">Description:</label>
 					<input type="text" name="description" id="description"
 						defaultValue={initialData.description}
-						onKeyDown={handleKeyDown}
 						ref={descriptionRef}
 						autoFocus
 					/>
 				</div>
 				<div className="for-field">
 					<label htmlFor="number">Number:</label>
-					<input type="text" pattern="[0-9]+" name="number" id="number"
+					<input type="number" name="number" id="number"
 						defaultValue={Number.isNaN(initialData.number) ? "" : initialData.number}
-						onKeyDown={handleKeyDown}
 						ref={numberRef}
 					/>
 				</div>
@@ -81,10 +79,9 @@ export default function FormAddEdit({isOpen, initialData, onOk, onCancel}: FormA
 		onCancel(initialData.id);
 	}
 
-	function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
-		if (event.key === "Enter") {
-			handleOk();
-		}
+	function handleKeyDown(event: React.KeyboardEvent<HTMLElement>) {
+		if (event.key === "Enter") {handleOk();}
+		if (event.key === "Escape") {handleCancel();}
 	}
 }
 

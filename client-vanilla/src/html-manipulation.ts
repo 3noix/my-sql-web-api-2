@@ -4,7 +4,8 @@ import * as el from "./html-elements";
 
 export function setDialogVisible(visible: boolean): void {
 	el.form.style.display = visible ? "flex" : "none";
-	el.background.style.display = visible ? "block" : "none";
+	el.background.style.display = visible ? "flex" : "none";
+	if (visible) {el.descriptionInput.focus();}
 };
 
 export function setButtonsEnabled(enabled: boolean): void {
@@ -13,10 +14,34 @@ export function setButtonsEnabled(enabled: boolean): void {
 	el.buttonRemove.disabled = !enabled;
 };
 
+export function selectedEntry(): Entry | null {
+	const selectedRow = document.querySelector("tbody tr.selected");
+	if (selectedRow == null) {return null;}
+
+	const id = parseInt((selectedRow.querySelector("td:nth-child(1)") as HTMLTableElement).innerHTML);
+	const description = (selectedRow.querySelector("td:nth-child(2)") as HTMLTableElement).innerHTML;
+	const number = parseInt((selectedRow.querySelector("td:nth-child(3)") as HTMLTableElement).innerHTML);
+	const lastModif = (selectedRow.querySelector("td:nth-child(4)") as HTMLTableElement).innerHTML;
+	return {id, description, number, lastModif};
+}
+
 export function deselectAllRows(): void {
 	for (const tr of document.querySelectorAll("tbody tr")) {
 		tr.classList.remove("selected");
 	}
+}
+
+export function setDialogEntry(e: {id: number, description: string, number: number}) {
+	el.idInput.valueAsNumber = e.id;
+	el.descriptionInput.value = e.description;
+	el.numberInput.valueAsNumber = e.number;
+}
+
+export function getDialogEntry(): {id: number, description: string, number: number} {
+	const id = el.idInput.valueAsNumber;
+	const description = el.descriptionInput.value;
+	const number = el.numberInput.valueAsNumber;
+	return {id, description, number};
 }
 
 export function appendEntryInHtml(e: Entry): void {

@@ -33,11 +33,6 @@ const defaultModalData = {id: 0, description: "", number: 0};
 // let count = 0;
 
 
-function displayErrorPopup(error: unknown) {
-	alert(error);
-}
-
-
 // @1: component
 export default function App() {
 	// useEffect(() => {
@@ -143,7 +138,7 @@ export default function App() {
 			}
 		}
 		catch (error) {
-			displayErrorPopup(error);
+			alert(error);
 		}
 		finally {
 			// close and reset everything
@@ -166,7 +161,7 @@ export default function App() {
 			await qInsertEntry.mutateAsync(newData);
 		}
 		catch (error) {
-			displayErrorPopup(error);
+			alert(error);
 		}
 		finally {
 			setModalAddEditMode("closed");
@@ -182,7 +177,7 @@ export default function App() {
 			await qUnlockEntry.mutateAsync({entryId: newData.id, token});
 		}
 		catch (error) {
-			displayErrorPopup(error);
+			alert(error);
 		}
 		finally {
 			setModalAddEditMode("closed");
@@ -210,7 +205,7 @@ export default function App() {
 			setModalAddEditData({id: selectedEntry.id, description: selectedEntry.description, number: selectedEntry.number});
 		}
 		catch (error) {
-			displayErrorPopup(error);
+			alert(error);
 		}
 	}
 
@@ -225,7 +220,7 @@ export default function App() {
 			await qDeleteEntry.mutateAsync({entryId: selectedEntryId, token});
 		}
 		catch (error) {
-			displayErrorPopup(error);
+			alert(error);
 		}
 	}
 }
