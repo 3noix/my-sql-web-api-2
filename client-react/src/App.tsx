@@ -1,4 +1,4 @@
-import {useState, useEffect, useCallback} from "react";
+import {useState} from "react";
 import styled from "styled-components";
 import Button from "./Button";
 import Table from "./Table";
@@ -33,6 +33,12 @@ const defaultModalData = {id: 0, description: "", number: 0};
 // let count = 0;
 
 
+function displayErrorPopup(error: unknown) {
+	alert(error);
+}
+
+
+// @1: component
 export default function App() {
 	// useEffect(() => {
 	// 	count++;
@@ -46,6 +52,7 @@ export default function App() {
 	const [modalAddEditMode, setModalAddEditMode] = useState<ModalAddEditMode>("closed");
 	const [modalAddEditData, setModalAddEditData] = useState(defaultModalData);
 
+	// @2: queries
 	// get all entries at startup
 	trpc.getAllEntries.useQuery(undefined, {
 		onSuccess: allEntries => {
@@ -77,19 +84,21 @@ export default function App() {
 	});
 
 	// mutations
-	// const qLockEntry     = trpc.lock.useMutation();
-	// const qUnlockEntry   = trpc.unlock.useMutation();
-	// const qInsertEntry   = trpc.insertEntry.useMutation();
-	// const qUpdateEntry   = trpc.updateEntry.useMutation();
-	// const qDeleteEntry   = trpc.deleteEntry.useMutation();
+	const qLockEntry = trpc.lock.useMutation();
+	const qUnlockEntry = trpc.unlock.useMutation();
+	const qInsertEntry = trpc.insertEntry.useMutation();
+	const qUpdateEntry = trpc.updateEntry.useMutation();
+	const qDeleteEntry = trpc.deleteEntry.useMutation();
 
 
+	// @2: authentication dialog
 	if (!auth.isLoggedIn) {
 		return (
 			<FormLogin/>
 		);
 	}
 
+	// @2: main window
 	return (
 		<Root>
 			<Section>
@@ -115,6 +124,7 @@ export default function App() {
 	);
 
 
+	// @2: row selection
 	function selectRow(id: number) {
 		setSelectedEntryId(id);
 	}
@@ -123,33 +133,64 @@ export default function App() {
 		setSelectedEntryId(-1);
 	}
 
+	// @2: add/edit dialog callbacks
 	async function handleAddEditCancel(entryId: number) {
-		if (modalAddEditMode === "open-edit") {
-			// unlock the entry being edited
-			// if (token === undefined) {throw new Error(`A token is needed to unlock an entry`);}
-			// await qUnlockEntry.mutate({entryId: entryId, token});
+		try {
+			if (modalAddEditMode === "open-edit") {
+				// unlock the entry being edited
+				if (token === undefined) {throw new Error(`A token is needed to unlock an entry`);}
+				await qUnlockEntry.mutate({entryId: entryId, token});
+			}
 		}
-
-		// close and reset everything
-		setModalAddEditMode("closed");
-		setModalAddEditData(defaultModalData);
+		catch (error) {
+			displayErrorPopup(error);
+		}
+		finally {
+			// close and reset everything
+			setModalAddEditMode("closed");
+			setModalAddEditData(defaultModalData);
+		}
 	}
 
 	async function handleAddEditOk(newData: FormAddEditData) {
 		if (modalAddEditMode === "open-add") {
-			// await qInsertEntry.mutateAsync(newData);
+			await handleAddOk(newData);
 		}
 		else if (modalAddEditMode === "open-edit") {
-			// update the entry and unlock it
-			// if (token === undefined) {throw new Error(`A token is needed to update an entry`);}
-			// await qUpdateEntry.mutateAsync({...newData, token});
-			// await qUnlockEntry.mutateAsync({entryId: newData.id, token});
+			await handleEditOk(newData);
 		}
-
-		setModalAddEditMode("closed");
-		setModalAddEditData(defaultModalData);
 	}
 
+	async function handleAddOk(newData: FormAddEditData) {
+		try {
+			await qInsertEntry.mutateAsync(newData);
+		}
+		catch (error) {
+			displayErrorPopup(error);
+		}
+		finally {
+			setModalAddEditMode("closed");
+			setModalAddEditData(defaultModalData);
+		}
+	}
+
+	async function handleEditOk(newData: FormAddEditData) {
+		try {
+			// update the entry and unlock it
+			if (token === undefined) {throw new Error(`A token is needed to update an entry`);}
+			await qUpdateEntry.mutateAsync({...newData, token});
+			await qUnlockEntry.mutateAsync({entryId: newData.id, token});
+		}
+		catch (error) {
+			displayErrorPopup(error);
+		}
+		finally {
+			setModalAddEditMode("closed");
+			setModalAddEditData(defaultModalData);
+		}
+	}
+
+	// @2: add/edit/delete buttons callbacks
 	function handleAddEntry() {
 		setModalAddEditMode("open-add");
 		setModalAddEditData(defaultModalData);
@@ -159,23 +200,33 @@ export default function App() {
 		let selectedEntry = data.entries.find(e => e.id === selectedEntryId);
 		if (!selectedEntry) {return;}
 
-		// lock the entry to update
-		// if (token === undefined) {throw new Error(`A token is needed to lock an entry`);}
-		// await qLockEntry.mutateAsync({entryId: selectedEntry.id, token});
+		try {
+			// lock the entry to update
+			if (token === undefined) {throw new Error(`A token is needed to lock an entry`);}
+			await qLockEntry.mutateAsync({entryId: selectedEntry.id, token});
 
-		// fill and show the dialog data
-		setModalAddEditMode("open-edit");
-		setModalAddEditData({id: selectedEntry.id, description: selectedEntry.description, number: selectedEntry.number});
+			// fill and show the dialog data
+			setModalAddEditMode("open-edit");
+			setModalAddEditData({id: selectedEntry.id, description: selectedEntry.description, number: selectedEntry.number});
+		}
+		catch (error) {
+			displayErrorPopup(error);
+		}
 	}
 
 	async function handleDeleteEntry() {
 		let selectedEntry = data.entries.find(e => e.id === selectedEntryId);
 		if (!selectedEntry) {return;}
 
-		// lock the entry and send the delete request
-		// if (token === undefined) {throw new Error(`A token is needed to lock & delete an entry`);}
-		// await qLockEntry.mutateAsync({entryId: selectedEntryId, token});
-		// await qDeleteEntry.mutateAsync({entryId: selectedEntryId, token});
+		try {
+			// lock the entry and send the delete request
+			if (token === undefined) {throw new Error(`A token is needed to lock & delete an entry`);}
+			await qLockEntry.mutateAsync({entryId: selectedEntryId, token});
+			await qDeleteEntry.mutateAsync({entryId: selectedEntryId, token});
+		}
+		catch (error) {
+			displayErrorPopup(error);
+		}
 	}
 }
 
