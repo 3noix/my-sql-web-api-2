@@ -1,12 +1,9 @@
 table {
 	margin: 5px;
 	border-collapse: collapse;
-	border-radius: 5px;
 	overflow: hidden;
-
-	border: 1px solid white;
-	padding: 5px 10px;
 	text-align: center;
+	white-space: nowrap;
 	user-select: none;
 	& th {
 		height: 40px;
