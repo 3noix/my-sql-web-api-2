@@ -7,21 +7,23 @@
 		"test-sql-queries": "ts-node ./test/test-queries.ts"
 	},
 	"devDependencies": {
+		"@types/better-sqlite3": "^7.6.5",
 		"@types/cors": "^2.8.13",
 		"@types/express": "^4.17.17",
 		"@types/node": "^20.5.4",
 		"@types/ws": "^8.5.5",
+		"drizzle-kit": "^0.19.13",
 		"ts-node-dev": "^2.0.0"
 	},
 	"dependencies": {
 		"@trpc/server": "^10.38.1",
+		"better-sqlite3": "^8.6.0",
 		"body-parser": "^1.20.2",
 		"cors": "^2.8.5",
 		"drizzle-orm": "^0.28.5",
 		"drizzle-zod": "^0.5.1",
 		"express": "^4.18.2",
 		"helmet": "^7.0.0",
-		"mysql2": "^3.6.0",
 		"ws": "^8.13.0",
 		"zod": "^3.22.2"
 	}

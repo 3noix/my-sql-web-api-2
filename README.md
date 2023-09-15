@@ -1,6 +1,6 @@
 ## my-sql-web-api-2
 
-This repository is a demo. On the back-end side there is a MySQL database with one table names "Entries" that includes 4 fields:
+This repository is a demo. On the back-end side there is a SQLite database with one table names "Entries" that includes 4 fields:
 - `id`: the id of the "entry" (managed by the database)
 - `description`: a string field
 - `number`: a numeric field

@@ -1,5 +1,4 @@
 import * as q from "../src/db/queries";
-import {disconnectFromDb} from "../src/db/db";
 
 
 // @2: MAIN
@@ -11,7 +10,6 @@ async function main() {
 	// await testInsertEntry();
 	// await testInsertEntryAndReturns();
 	// await testDeleteEntry();
-	await disconnectFromDb();
 }
 
 main();
@@ -36,16 +34,7 @@ async function testUpdateEntry() {
 	console.log("-- testUpdateEntry ---------------");
 	const entryBefore = await q.getEntryById(45);
 	console.log(entryBefore);
-	await q.updateEntry({id: 45, description: "new description 1", number: 9999});
-	const entryAfter = await q.getEntryById(45);
-	console.log(entryAfter);
-}
-
-async function testUpdateEntryAndReturns() {
-	console.log("-- testUpdateEntryAndReturns ---------------");
-	const entryBefore = await q.getEntryById(45);
-	console.log(entryBefore);
-	const entryAfter = await q.updateEntryAndReturns({id: 45, description: "new description 2", number: 9999});
+	const entryAfter = await q.updateEntry({id: 45, description: "new description 1", number: 9999});
 	console.log(entryAfter);
 }
 
@@ -53,15 +42,8 @@ async function testUpdateEntryAndReturns() {
 // @1: functions for INSERT
 async function testInsertEntry() {
 	console.log("-- testInsertEntry ---------------");
-	await q.insertEntry({description: "new entry 1"});
-	const entries = await q.getAllEntries();
-	console.log(entries);
-}
-
-async function testInsertEntryAndReturns() {
-	console.log("-- testInsertEntryAndReturns ---------------");
-	const newEntry = await q.insertEntryAndReturns({description: "new entry 2"});
-	console.log(newEntry);
+	const insertedEntry = await q.insertEntry({description: "new entry 1"});
+	console.log(insertedEntry);
 }
 
 

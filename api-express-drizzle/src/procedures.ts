@@ -145,7 +145,7 @@ export const insertEntry = trpc.procedure
 	}))
 	.mutation(async req => {
 		if (env.trpc.logProcCalls) {console.log(`insert: description=${req.input.description}, number=${req.input.number}`);}
-		const insertedEntry = await q.insertEntryAndReturns(req.input);
+		const insertedEntry = await q.insertEntry(req.input);
 		ee.emit("insert", insertedEntry);
 		return {inserted: insertedEntry};
 	});
@@ -178,7 +178,7 @@ export const updateEntry = trpc.procedure
 		}
 
 		// update it and notifies
-		const updatedEntry = await q.updateEntryAndReturns(req.input);
+		const updatedEntry = await q.updateEntry(req.input);
 		ee.emit("update", updatedEntry);
 		return {updated: updatedEntry};
 	});
