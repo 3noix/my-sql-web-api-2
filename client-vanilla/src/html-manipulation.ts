@@ -44,6 +44,12 @@ export function getDialogEntry(): {id: number, description: string, number: numb
 	return {id, description, number};
 }
 
+export function clearAllEntries(): void {
+	for (const td of document.querySelectorAll("tbody tr")) {
+		td.remove();
+	}
+}
+
 export function appendEntryInHtml(e: Entry): void {
 	const line = document.createElement("tr");
 	const col1 = document.createElement("td");
