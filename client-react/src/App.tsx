@@ -54,7 +54,8 @@ export default function App() {
 			data.setAllEntries(allEntries);
 			console.log("All entries sent");
 		},
-		enabled: auth.isLoggedIn
+		enabled: auth.isLoggedIn,
+		refetchOnReconnect: "always" // does nothing
 	});
 
 	// to get the token

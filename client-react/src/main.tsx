@@ -23,6 +23,7 @@ const queryClient = new QueryClient({
 	}
 });
 
+let iConnection = 0;
 const trpcClient = trpc.createClient({
 	links: [
 		splitLink({
@@ -32,8 +33,23 @@ const trpcClient = trpc.createClient({
 			true: wsLink({
 				client: createWSClient({
 					url: "ws://localhost:3000",
-					onOpen:  () => {console.log("WS connection is open");;},
-					onClose: () => {console.log("WS connnection is closed");}
+					onOpen:  async () => {
+						iConnection++;
+						console.log(`WS connection is open (${iConnection})`);
+						// await queryClient.invalidateQueries(["getAllEntries"]); // PB: does nothing
+						// await queryClient.invalidateQueries(["getAllEntries"], {refetchType: "all"}); // PB: does nothing
+						// await queryClient.invalidateQueries(); // works (both getAllEntries and register)
+						// await queryClient.refetchQueries(["getAllEntries", undefined]); // PB: does nothing
+						// await queryClient.refetchQueries(); // works (both getAllEntries and register)
+
+						// const res = queryClient.getQueriesData({type: "all"}); // returns the 2 queries
+						// const res = queryClient.getQueriesData(["getAllEntries"]); // PB: return empty array
+						// const res = queryClient.getQueriesData(["getAllEntries", undefined]); // PB: return empty array
+						// console.log(res);
+					},
+					onClose: () => {
+						console.log(`WS connnection is closed (${iConnection})`);
+					}
 				})
 			}),
 			false: httpBatchLink({
