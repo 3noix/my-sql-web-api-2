@@ -45,5 +45,6 @@ process.on("SIGTERM", () => {
 	console.log("SIGTERM");
 	handler.broadcastReconnectNotification();
 	wsServer.close();
+	httpServer.close();
 });
 
