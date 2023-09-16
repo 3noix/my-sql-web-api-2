@@ -141,6 +141,13 @@ el.tableHeader.addEventListener("click", html.deselectAllRows);
 
 
 // @1: notifications
+trpc.onLoggedOut.subscribe({token}, {
+	onData: () => {
+		console.log("Token expired!");
+		alert("Token expired!");
+	}
+});
+
 trpc.onEntryInserted.subscribe(undefined, {
 	onData: (newEntry) => {
 		html.appendEntryInHtml(newEntry);

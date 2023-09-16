@@ -12,6 +12,7 @@ const sessions = new Map<string,{username: string, expired: NodeJS.Timeout}>(); 
 const lockers = new Map<number,string>(); // key = entry id, value = token
 
 function removeToken(input: {token: string}): boolean {
+	if (env.trpc.logProcCalls) {console.log(`Removing token: ${input.token}`);}
 	const session = sessions.get(input.token);
 	if (session !== undefined) {clearTimeout(session.expired);}
 
@@ -25,6 +26,7 @@ function removeToken(input: {token: string}): boolean {
 		}
 	}
 
+	ee.emit("logged-out", input.token);
 	return (count > 0);
 }
 
@@ -61,6 +63,18 @@ const logout = trpc.procedure
 		const token = req.input.token;
 		const tokenExisted = removeToken({token});
 		// if (!tokenExisted) {throw new Error("Unregistered token");}
+	});
+
+const onLoggedOut = trpc.procedure
+	.input(z.object({
+		token: z.string().uuid()
+	}))
+	.subscription(({input}) => {
+		return observable<string>(emit => {
+			const cb = (token: string) => {if (token === input.token) {emit.next(token);}};
+			ee.on("logged-out", cb);
+			return () => {ee.off("logged-out", cb)};
+		});
 	});
 
 
@@ -228,6 +242,7 @@ const onEntryDeleted = trpc.procedure.subscription(() => {
 export const router = trpc.router({
 	login,
 	logout,
+	onLoggedOut,
 	lock,
 	unlock,
 	getAllEntries,

@@ -74,6 +74,10 @@ export default function App() {
 	const {mutateAsync: deleteEntry} = trpc.deleteEntry.useMutation();
 
 	// on notifications
+	trpc.onLoggedOut.useSubscription({token: token || ""}, {
+		onData: token => {auth.logout()},
+		enabled: auth.isLoggedIn
+	});
 	trpc.onEntryInserted.useSubscription(undefined, {
 		onData: newEntry => {data.appendEntry(newEntry);},
 		enabled: auth.isLoggedIn
