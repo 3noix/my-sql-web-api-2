@@ -69,33 +69,33 @@ function onEntryDeleted(input: {deletedEntryId: number}): void {
 // @1: functions for LOGIN / LOGOUT
 async function testLogin1() {
 	console.log("-- testLogin1 ---------------");
-	const {token} = await trpc.login.query({username: "3noix", password: "password"});
+	const {token} = await trpc.login.mutate({username: "3noix", password: "password"});
 	console.log(`token = ${token}`);
 	await sleep(1000);
-	await trpc.logout.query({token});
+	await trpc.logout.mutate({token});
 }
 
 async function testLogin2() {
 	console.log("-- testLogin2 ---------------");
-	await trpc.logout.query({token: "80ba2fbb-9412-4895-9052-1e379b1dbfd1"});
+	await trpc.logout.mutate({token: "80ba2fbb-9412-4895-9052-1e379b1dbfd1"});
 }
 
 
 // @1: functions for LOCK / UNLOCK
 async function testLockUnlock1() {
 	console.log("-- testLockUnlock1 ---------------");
-	const {token} = await trpc.login.query({username: "3noix", password: "password"});
+	const {token} = await trpc.login.mutate({username: "3noix", password: "password"});
 	const res = await trpc.lock.mutate({token, entryId: 3});
 	await sleep(1000);
 	await trpc.unlock.mutate({token, entryId: 3});
-	await trpc.logout.query({token});
+	await trpc.logout.mutate({token});
 }
 
 async function testLockUnlock2() {
 	console.log("-- testLockUnlock2 ---------------");
-	const {token} = await trpc.login.query({username: "3noix", password: "password"});
+	const {token} = await trpc.login.mutate({username: "3noix", password: "password"});
 	await trpc.unlock.mutate({token, entryId: 3});
-	await trpc.logout.query({token});
+	await trpc.logout.mutate({token});
 }
 
 
@@ -127,14 +127,14 @@ async function testUpdateEntry1() {
 	const entryBefore = await trpc.getEntryById.query({entryId: 5});
 	console.log(entryBefore);
 
-	const {token} = await trpc.login.query({username: "3noix", password: "password"});
+	const {token} = await trpc.login.mutate({username: "3noix", password: "password"});
 	await trpc.lock.mutate({token, entryId: 5});
 
 	const entryAfter = await trpc.updateEntry.mutate({token, id: 5, description: "updated description", number: 9999});
 	console.log(entryAfter);
 
 	await trpc.unlock.mutate({token, entryId: 5});
-	await trpc.logout.query({token});
+	await trpc.logout.mutate({token});
 }
 
 async function testUpdateEntry2() {
@@ -142,12 +142,12 @@ async function testUpdateEntry2() {
 	const entryBefore = await trpc.getEntryById.query({entryId: 5});
 	console.log(entryBefore);
 
-	const {token} = await trpc.login.query({username: "3noix", password: "password"});
+	const {token} = await trpc.login.mutate({username: "3noix", password: "password"});
 
 	const entryAfter = await trpc.updateEntry.mutate({token, id: 5, description: "other description", number: 9999});
 	console.log(entryAfter);
 
-	await trpc.logout.query({token});
+	await trpc.logout.mutate({token});
 }
 
 
@@ -155,10 +155,10 @@ async function testUpdateEntry2() {
 async function testDeleteEntry1() {
 	console.log("-- testDeleteEntry1 ---------------");
 	const entriesBefore = await trpc.getAllEntries.query();
-	const {token} = await trpc.login.query({username: "3noix", password: "password"});
+	const {token} = await trpc.login.mutate({username: "3noix", password: "password"});
 	await trpc.lock.mutate({token, entryId: 5});
 	await trpc.deleteEntry.mutate({token, entryId: 5});
-	await trpc.logout.query({token});
+	await trpc.logout.mutate({token});
 	const entriesAfter = await trpc.getAllEntries.query();
 	console.log(`Before: ${entriesBefore.map(e=>e.id.toString()).join(",")}`);
 	console.log(`After:  ${entriesAfter.map(e=>e.id.toString()).join(",")}`);
@@ -167,9 +167,9 @@ async function testDeleteEntry1() {
 async function testDeleteEntry2() {
 	console.log("-- testDeleteEntry2 ---------------");
 	const entriesBefore = await trpc.getAllEntries.query();
-	const {token} = await trpc.login.query({username: "3noix", password: "password"});
+	const {token} = await trpc.login.mutate({username: "3noix", password: "password"});
 	await trpc.deleteEntry.mutate({token, entryId: 5});
-	await trpc.logout.query({token});
+	await trpc.logout.mutate({token});
 	const entriesAfter = await trpc.getAllEntries.query();
 	console.log(`Before: ${entriesBefore.map(e=>e.id.toString()).join(",")}`);
 	console.log(`After:  ${entriesAfter.map(e=>e.id.toString()).join(",")}`);

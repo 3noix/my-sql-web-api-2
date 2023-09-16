@@ -6,7 +6,12 @@ import {trpc} from "./trpc";
 
 // @1: init
 html.setButtonsEnabled(false);
-const {token} = await trpc.login.query({username: "client-vanilla", password: "password"});
+const {token} = await trpc.login.mutate({username: "client-vanilla", password: "password"});
+window.addEventListener("beforeunload", () => {trpc.logout.mutate({token})});
+// remark: the line above does not work
+// - on Chrome: sometimes, but not always (didn't get why)
+// - on Firefox: work if the tab being closed is not the last one in this Firefox window
+
 const entries = await trpc.getAllEntries.query();
 for (const e of entries) {html.appendEntryInHtml(e);}
 html.setButtonsEnabled(true);

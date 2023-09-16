@@ -1,5 +1,6 @@
 import {useRef} from "react";
 import {useAuthentication} from "./useAuthentication";
+import {trpc} from "./trpc";
 import styled from "styled-components";
 import "./FormLogin.scss";
 
@@ -23,6 +24,17 @@ export default function FormLogin() {
 	const loginRef = useRef<HTMLInputElement>(null);
 	const passwordRef = useRef<HTMLInputElement>(null);
 
+	const {mutateAsync: login} = trpc.login.useMutation({
+		onSuccess: ({token}) => {
+			const username = loginRef.current?.value || "";
+			const password = passwordRef.current?.value || "";
+			auth.login(username, password, token);
+		},
+		onError: (error) => {
+			alert(`Authentication failed:\n${error.message}`);
+		}
+	});
+
 	const onKeyDown: React.KeyboardEventHandler<HTMLInputElement> = event => {
 		if (event.key === "Enter") {
 			onOkClicked();
@@ -38,7 +50,7 @@ export default function FormLogin() {
 			return;
 		}
 
-		auth.login(username, password);
+		await login({username, password});
 	}
 
 	return (

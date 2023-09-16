@@ -42,7 +42,7 @@ const login = trpc.procedure
 	.output(z.object({
 		token: z.string().uuid()
 	}))
-	.query(req => {
+	.mutation(req => {
 		if (env.trpc.logProcCalls) {console.log(`login: name=${req.input.username}`);}
 		const token = randomUUID();
 		sessions.set(token, {
@@ -56,7 +56,7 @@ const logout = trpc.procedure
 	.input(z.object({
 		token: z.string().uuid()
 	}))
-	.query(req => {
+	.mutation(req => {
 		if (env.trpc.logProcCalls) {console.log(`logout: token=${req.input.token}`);}
 		const token = req.input.token;
 		const tokenExisted = removeToken({token});

@@ -1,9 +1,10 @@
-import {useState} from "react";
+import {useState, useCallback} from "react";
 import styled from "styled-components";
 import Button from "./Button";
 import Table from "./Table";
 import FormLogin from "./FormLogin";
 import FormAddEdit, {FormAddEditData} from "./FormAddEdit";
+import {useBeforeUnload} from "react-router-dom";
 import {useAuthentication} from "./useAuthentication";
 import {useEntries} from "./useEntries";
 import {trpc} from "./trpc";
@@ -48,6 +49,14 @@ export default function App() {
 	const [modalAddEditData, setModalAddEditData] = useState(defaultModalData);
 
 	// @2: queries
+	// to logout when page closes
+	const token = auth.isLoggedIn ? auth.token : undefined;
+	const {mutateAsync: logout} = trpc.logout.useMutation();
+	useBeforeUnload(useCallback(async () => {
+		if (token === undefined) {return;}
+		await logout({token});
+	}, [token]));
+
 	// get all entries at startup
 	trpc.getAllEntries.useQuery(undefined, {
 		onSuccess: allEntries => {
@@ -57,12 +66,12 @@ export default function App() {
 		enabled: auth.isLoggedIn
 	});
 
-	// to get the token
-	const qRegister = trpc.login.useQuery({username: auth.username, password: auth.password}, {
-		onSuccess: data => {console.log(`Token received: ${data.token}`);},
-		enabled: auth.isLoggedIn
-	});
-	const token = qRegister.data?.token;
+	// mutations
+	const {mutateAsync: lockEntry}   = trpc.lock.useMutation();
+	const {mutateAsync: unlockEntry} = trpc.unlock.useMutation();
+	const {mutateAsync: insertEntry} = trpc.insertEntry.useMutation();
+	const {mutateAsync: updateEntry} = trpc.updateEntry.useMutation();
+	const {mutateAsync: deleteEntry} = trpc.deleteEntry.useMutation();
 
 	// on notifications
 	trpc.onEntryInserted.useSubscription(undefined, {
@@ -77,13 +86,6 @@ export default function App() {
 		onData: ({deletedEntryId}) => {data.deleteEntry(deletedEntryId);},
 		enabled: auth.isLoggedIn
 	});
-
-	// mutations
-	const qLockEntry = trpc.lock.useMutation();
-	const qUnlockEntry = trpc.unlock.useMutation();
-	const qInsertEntry = trpc.insertEntry.useMutation();
-	const qUpdateEntry = trpc.updateEntry.useMutation();
-	const qDeleteEntry = trpc.deleteEntry.useMutation();
 
 
 	// @2: authentication dialog
@@ -134,7 +136,7 @@ export default function App() {
 			if (modalAddEditMode === "open-edit") {
 				// unlock the entry being edited
 				if (token === undefined) {throw new Error(`A token is needed to unlock an entry`);}
-				await qUnlockEntry.mutate({entryId: entryId, token});
+				await unlockEntry({entryId: entryId, token});
 			}
 		}
 		catch (error) {
@@ -158,7 +160,7 @@ export default function App() {
 
 	async function handleAddOk(newData: FormAddEditData) {
 		try {
-			await qInsertEntry.mutateAsync(newData);
+			await insertEntry(newData);
 		}
 		catch (error) {
 			alert(error);
@@ -173,8 +175,8 @@ export default function App() {
 		try {
 			// update the entry and unlock it
 			if (token === undefined) {throw new Error(`A token is needed to update an entry`);}
-			await qUpdateEntry.mutateAsync({...newData, token});
-			await qUnlockEntry.mutateAsync({entryId: newData.id, token});
+			await updateEntry({...newData, token});
+			await unlockEntry({entryId: newData.id, token});
 		}
 		catch (error) {
 			alert(error);
@@ -198,7 +200,7 @@ export default function App() {
 		try {
 			// lock the entry to update
 			if (token === undefined) {throw new Error(`A token is needed to lock an entry`);}
-			await qLockEntry.mutateAsync({entryId: selectedEntry.id, token});
+			await lockEntry({entryId: selectedEntry.id, token});
 
 			// fill and show the dialog data
 			setModalAddEditMode("open-edit");
@@ -216,8 +218,8 @@ export default function App() {
 		try {
 			// lock the entry and send the delete request
 			if (token === undefined) {throw new Error(`A token is needed to lock & delete an entry`);}
-			await qLockEntry.mutateAsync({entryId: selectedEntryId, token});
-			await qDeleteEntry.mutateAsync({entryId: selectedEntryId, token});
+			await lockEntry({entryId: selectedEntryId, token});
+			await deleteEntry({entryId: selectedEntryId, token});
 		}
 		catch (error) {
 			alert(error);
