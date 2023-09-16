@@ -35,9 +35,9 @@ const handler = applyWSSHandler({
 	router: router,
 	createContext: () => ({})
 });
-wsServer.on("connection", ws => {
+wsServer.on("connection", socket => {
 	onWsConnectionOpening();
-	ws.once("close", onWsConnectionClose);
+	socket.once("close", onWsConnectionClose);
 });
 onWsServerListening();
 

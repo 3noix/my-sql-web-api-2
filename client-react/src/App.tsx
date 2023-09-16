@@ -58,22 +58,22 @@ export default function App() {
 	});
 
 	// to get the token
-	const qRegister = trpc.register.useQuery({name: auth.username}, {
+	const qRegister = trpc.login.useQuery({username: auth.username, password: auth.password}, {
 		onSuccess: data => {console.log(`Token received: ${data.token}`);},
 		enabled: auth.isLoggedIn
 	});
 	const token = qRegister.data?.token;
 
 	// on notifications
-	trpc.onInsert.useSubscription(undefined, {
+	trpc.onEntryInserted.useSubscription(undefined, {
 		onData: newEntry => {data.appendEntry(newEntry);},
 		enabled: auth.isLoggedIn
 	});
-	trpc.onUpdate.useSubscription(undefined, {
+	trpc.onEntryUpdated.useSubscription(undefined, {
 		onData: updatedEntry => {data.updateEntry(updatedEntry);},
 		enabled: auth.isLoggedIn
 	});
-	trpc.onDelete.useSubscription(undefined, {
+	trpc.onEntryDeleted.useSubscription(undefined, {
 		onData: ({deletedEntryId}) => {data.deleteEntry(deletedEntryId);},
 		enabled: auth.isLoggedIn
 	});

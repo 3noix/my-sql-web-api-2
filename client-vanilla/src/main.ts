@@ -6,7 +6,7 @@ import {trpc} from "./trpc";
 
 // @1: init
 html.setButtonsEnabled(false);
-const {token} = await trpc.register.query({name: "client-vanilla"});
+const {token} = await trpc.login.query({username: "client-vanilla", password: "password"});
 const entries = await trpc.getAllEntries.query();
 for (const e of entries) {html.appendEntryInHtml(e);}
 html.setButtonsEnabled(true);
@@ -136,19 +136,19 @@ el.tableHeader.addEventListener("click", html.deselectAllRows);
 
 
 // @1: notifications
-trpc.onInsert.subscribe(undefined, {
+trpc.onEntryInserted.subscribe(undefined, {
 	onData: (newEntry) => {
 		html.appendEntryInHtml(newEntry);
 	}
 });
 
-trpc.onUpdate.subscribe(undefined, {
+trpc.onEntryUpdated.subscribe(undefined, {
 	onData: (updatedEntry) => {
 		html.updateEntryInHtml(updatedEntry);
 	}
 });
 
-trpc.onDelete.subscribe(undefined, {
+trpc.onEntryDeleted.subscribe(undefined, {
 	onData: ({deletedEntryId}) => {
 		html.deleteEntryInHtml(deletedEntryId);
 	}
