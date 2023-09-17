@@ -1,6 +1,7 @@
 import {createTRPCProxyClient, createWSClient, splitLink, httpBatchLink, wsLink} from "@trpc/client";
 import type {Router} from "../../api-express-drizzle/src/router";
-import {setButtonsEnabled} from "./html-manipulation";
+import {mainPage} from "./main";
+
 
 export const trpc = createTRPCProxyClient<Router>({
 	links: [
@@ -13,11 +14,11 @@ export const trpc = createTRPCProxyClient<Router>({
 					url: "ws://localhost:3000",
 					onOpen: () => {
 						console.log("connected!");
-						setButtonsEnabled(true);
+						mainPage.setButtonsEnabled(true);
 					},
 					onClose: () => {
 						console.log("disconnected!");
-						setButtonsEnabled(false);
+						mainPage.setButtonsEnabled(false);
 					}
 				})
 			}),

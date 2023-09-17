@@ -1,11 +1,15 @@
 import "./style.scss";
-import * as el from "./html-elements";
-import * as html from "./html-manipulation";
+import {MainPage} from "./main-page";
+import {DialogAddEdit} from "./dialog-add-edit";
 import {trpc} from "./trpc";
 
 
+export const mainPage = new MainPage();
+export const dialogAddEdit = new DialogAddEdit();
+
+
 // @1: init
-html.setButtonsEnabled(false);
+mainPage.setButtonsEnabled(false);
 const {token} = await trpc.login.mutate({username: "client-vanilla", password: "password"});
 window.addEventListener("beforeunload", () => {trpc.logout.mutate({token})});
 // remark: the line above does not work
@@ -13,41 +17,41 @@ window.addEventListener("beforeunload", () => {trpc.logout.mutate({token})});
 // - on Firefox: work if the tab being closed is not the last one in this Firefox window
 
 const entries = await trpc.getAllEntries.query();
-for (const e of entries) {html.appendEntryInHtml(e);}
-html.setButtonsEnabled(true);
+for (const e of entries) {mainPage.appendEntry(e);}
+mainPage.setButtonsEnabled(true);
 
 
 // @1: add / edit / remove buttons callbacks
 type Mode = "closed" | "open-add" | "open-edit";
 let mode: Mode = "closed";
 
-el.buttonAdd.addEventListener("click", e => {
+function handleAddClicked() {
 	// reset and display the dialog
 	mode = "open-add";
-	html.setDialogEntry({id: 0, description: "", number: 0});
-	html.setDialogVisible(true);
-});
+	dialogAddEdit.setData({id: 0, description: "", number: 0});
+	dialogAddEdit.setVisible(true);
+}
 
-el.buttonEdit.addEventListener("click", async (e) => {
-	const selectedEntry = html.selectedEntry();
+async function handleEditClicked() {
+	const selectedEntry = mainPage.selectedEntry();
 	if (selectedEntry == null) {return;}
 
 	try {
 		// lock the entry to update
 		await trpc.lock.mutate({entryId: selectedEntry.id, token});
-		html.setDialogVisible(true);
+		dialogAddEdit.setVisible(true);
 
 		// fill and display the dialog
 		mode = "open-edit";
-		html.setDialogEntry(selectedEntry);
+		dialogAddEdit.setData(selectedEntry);
 	}
 	catch (error) {
 		alert(error);
 	}
-});
+}
 
-el.buttonRemove.addEventListener("click", async (e) => {
-	const selectedEntry = html.selectedEntry();
+async function handleDeleteClicked() {
+	const selectedEntry = mainPage.selectedEntry();
 	if (selectedEntry == null) {return;}
 
 	try {
@@ -60,14 +64,18 @@ el.buttonRemove.addEventListener("click", async (e) => {
 	catch (error) {
 		alert(error);
 	}
-});
+}
+
+mainPage.setOnAddClicked(handleAddClicked);
+mainPage.setOnEditClicked(handleEditClicked);
+mainPage.setOnDeleteClicked(handleDeleteClicked);
 
 
-// @1: dialog callbacks
+// @1: add/edit dialog callbacks
 async function handleAddEditOk() {
-	const entryFromDialog = html.getDialogEntry();
+	const entryFromDialog = dialogAddEdit.getData();
 	if (entryFromDialog.description.length === 0 || isNaN(entryFromDialog.number)) {return;}
-	html.setDialogVisible(false);
+	dialogAddEdit.setVisible(false);
 	
 	if (mode === "open-add") {
 		await handleAddOk();
@@ -79,7 +87,7 @@ async function handleAddEditOk() {
 
 async function handleAddOk() {
 	try {
-		const entryFromDialog = html.getDialogEntry();
+		const entryFromDialog = dialogAddEdit.getData();
 		await trpc.insertEntry.mutate({
 			description: entryFromDialog.description,
 			number: entryFromDialog.number
@@ -95,7 +103,7 @@ async function handleAddOk() {
 
 async function handleEditOk() {
 	try {
-		const entryFromDialog = html.getDialogEntry();
+		const entryFromDialog = dialogAddEdit.getData();
 		await trpc.updateEntry.mutate({...entryFromDialog, token});
 	
 		// unlock the updated entry
@@ -113,7 +121,7 @@ async function handleAddEditCancel() {
 	try {
 		if (mode === "open-edit") {
 			// unlock the entry being edited
-			const entryFromDialog = html.getDialogEntry();
+			const entryFromDialog = dialogAddEdit.getData();
 			await trpc.unlock.mutate({entryId: entryFromDialog.id, token});
 		}
 	}
@@ -121,23 +129,13 @@ async function handleAddEditCancel() {
 		alert(error);
 	}
 	finally {
-		html.setDialogVisible(false);
+		dialogAddEdit.setVisible(false);
 		mode = "closed";
 	}
 }
 
-function handleAddEditKeyDown(event: KeyboardEvent) {
-	if (event.key === "Enter") {handleAddEditOk();}
-	if (event.key === "Escape") {handleAddEditCancel();}
-}
-
-el.buttonOk.addEventListener("click", handleAddEditOk);
-el.buttonCancel.addEventListener("click", handleAddEditCancel);
-el.form.addEventListener("keydown", handleAddEditKeyDown);
-
-
-// @1: other callbacks
-el.tableHeader.addEventListener("click", html.deselectAllRows);
+dialogAddEdit.setOnOkClicked(handleAddEditOk);
+dialogAddEdit.setOnCancelClicked(handleAddEditCancel);
 
 
 // @1: notifications
@@ -150,19 +148,19 @@ trpc.onLoggedOut.subscribe({token}, {
 
 trpc.onEntryInserted.subscribe(undefined, {
 	onData: (newEntry) => {
-		html.appendEntryInHtml(newEntry);
+		mainPage.appendEntry(newEntry);
 	}
 });
 
 trpc.onEntryUpdated.subscribe(undefined, {
 	onData: (updatedEntry) => {
-		html.updateEntryInHtml(updatedEntry);
+		mainPage.updateEntry(updatedEntry);
 	}
 });
 
 trpc.onEntryDeleted.subscribe(undefined, {
 	onData: ({deletedEntryId}) => {
-		html.deleteEntryInHtml(deletedEntryId);
+		mainPage.deleteEntry(deletedEntryId);
 	}
 });
 
