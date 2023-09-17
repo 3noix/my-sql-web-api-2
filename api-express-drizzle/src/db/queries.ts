@@ -40,10 +40,16 @@ export async function updateEntry(newValue: EntryWithoutLastModif): Promise<Entr
 
 // @1: INSERT
 export async function insertEntry(newEntry: NewEntry): Promise<Entry> {
-	const result = await db
+	const resultWithWrongLastModif = await db
 		.insert(entries)
 		.values({...newEntry, lastModif: "2000-01-01 00:00:00"})
 		.returning();
+
+	if (resultWithWrongLastModif.length !== 1) {throw new Error(`Insert entry: internal error`);}
+	const result = await db
+		.select()
+		.from(entries)
+		.where(eq(entries.id, resultWithWrongLastModif[0].id));
 
 	if (result.length !== 1) {throw new Error(`Insert entry: internal error`);}
 	return result[0];

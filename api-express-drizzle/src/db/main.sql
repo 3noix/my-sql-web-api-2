@@ -11,9 +11,15 @@ INSERT INTO Entries (id, description, number, last_modif) VALUES
 (1,'description test',3,'2020-09-24 23:23:23'),
 (2,'rien',4,'2020-09-26 22:06:54');
 
+CREATE TRIGGER trigger_insert_entry AFTER INSERT
+ON Entries FOR EACH ROW
+BEGIN
+	UPDATE Entries SET last_modif=datetime() WHERE id=NEW.id;
+END;
+
 CREATE TRIGGER trigger_update_entry BEFORE UPDATE
 ON Entries FOR EACH ROW
 BEGIN
-	UPDATE Entries SET last_modif=datetime() where id=NEW.id;
+	UPDATE Entries SET last_modif=datetime() WHERE id=NEW.id;
 END;
 
