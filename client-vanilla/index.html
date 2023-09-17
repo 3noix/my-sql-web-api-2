@@ -27,24 +27,39 @@
 				</table>
 			</main>
 		</div>
-		<div class="background">
-			<form>
+		<div class="add-edit-background">
+			<form class="add-edit-form">
 				<div hidden>
 					<label for="id" hidden>Id:</label>
 					<input type="number" name="id" id="id" hidden>
 				</div>
 				<div class="for-field">
-					<label for="desc">Description:</label>
-					<input type="text" name="desc" id="desc" autofocus>
+					<label for="description">Description:</label>
+					<input type="text" name="description" id="description" autofocus>
 				</div>
 				<div class="for-field">
 					<label for="number">Number:</label>
 					<input type="number" name="number" id="number">
 				</div>
 				<div class="for-buttons">
-					<button type="button" id="ok">Ok</button>
+					<button type="button" id="add-edit-ok">Ok</button>
 				</div>
-				<div class="close-button" id="cancel"></div>
+				<div class="close-button" id="add-edit-cancel"></div>
+			</form>
+		</div>
+		<div class="login-background">
+			<form class="login-form">
+				<div class="for-field">
+					<label for="username">User name:</label>
+					<input type="text" name="username" id="username" autoFocus/>
+				</div>
+				<div class="for-field">
+					<label for="password">Password:</label>
+					<input type="password" name="password" id="password"/>
+				</div>
+				<div class="for-buttons">
+					<button type="button" id="login-ok">Connect</button>
+				</div>
 			</form>
 		</div>
 		<script type="module" src="/src/main.ts"></script>

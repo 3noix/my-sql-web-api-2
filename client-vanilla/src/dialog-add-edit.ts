@@ -1,12 +1,12 @@
 export class DialogAddEdit {
 	// @1: elements
-	private background = document.querySelector(".background") as HTMLDivElement;
-	private form = document.querySelector("form") as HTMLFormElement;
-	private idInput = document.querySelector("#id") as HTMLInputElement;
-	private descriptionInput = document.querySelector("#desc") as HTMLInputElement;
-	private numberInput = document.querySelector("#number") as HTMLInputElement;
-	private buttonOk = document.querySelector("#ok") as HTMLButtonElement;
-	private buttonCancel = document.querySelector("#cancel") as HTMLButtonElement;
+	private background = document.querySelector(".add-edit-background") as HTMLDivElement;
+	private form = this.background.querySelector(".add-edit-form") as HTMLFormElement;
+	private inputId = this.form.querySelector("#id") as HTMLInputElement;
+	private inputDescription = this.form.querySelector("#description") as HTMLInputElement;
+	private inputNumber = this.form.querySelector("#number") as HTMLInputElement;
+	private buttonOk = this.form.querySelector("#add-edit-ok") as HTMLButtonElement;
+	private buttonCancel = this.form.querySelector("#add-edit-cancel") as HTMLButtonElement;
 
 	// @1: callbacks
 	private onOkClicked = () => {};
@@ -25,21 +25,20 @@ export class DialogAddEdit {
 
 	// @1: functions
 	public setVisible(visible: boolean): void {
-		this.form.style.display = visible ? "flex" : "none";
 		this.background.style.display = visible ? "flex" : "none";
-		if (visible) {this.descriptionInput.focus();}
+		if (visible) {this.inputDescription.focus();}
 	}
 
 	public setData(e: {id: number, description: string, number: number}): void {
-		this.idInput.valueAsNumber = e.id;
-		this.descriptionInput.value = e.description;
-		this.numberInput.valueAsNumber = e.number;
+		this.inputId.valueAsNumber = e.id;
+		this.inputDescription.value = e.description;
+		this.inputNumber.valueAsNumber = e.number;
 	}
 
 	public getData(): {id: number, description: string, number: number} {
-		const id = this.idInput.valueAsNumber;
-		const description = this.descriptionInput.value;
-		const number = this.numberInput.valueAsNumber;
+		const id = this.inputId.valueAsNumber;
+		const description = this.inputDescription.value;
+		const number = this.inputNumber.valueAsNumber;
 		return {id, description, number};
 	}
 

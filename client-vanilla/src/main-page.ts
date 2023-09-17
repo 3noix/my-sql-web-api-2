@@ -46,6 +46,10 @@ export class MainPage {
 		}
 	}
 
+	public clearAllEntries(): void {
+		for (const tr of document.querySelectorAll("tbody tr")) {tr.remove();}
+	}
+
 	public appendEntry(e: Entry): void {
 		const line = document.createElement("tr");
 		const col1 = document.createElement("td");

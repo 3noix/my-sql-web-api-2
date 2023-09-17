@@ -78,7 +78,7 @@ table {
 }
 
 
-.background {
+.add-edit-background {
 	display: none;
 	position: fixed;
 	top: 0;
@@ -90,13 +90,9 @@ table {
 	justify-content: center;
 	align-items: center;
 
-	& form {
-		// use this absolute positioning if the parent item display is block in the js file
+	& .add-edit-form {
 		position: relative;
-		top: 20px;
-		left: 20px;
-
-		display: none;
+		display: flex;
 		flex-direction: column;
 		justify-content: space-evenly;
 		width: 400px;
@@ -162,6 +158,63 @@ table {
 			}
 			&::after {
 				transform: translateY(-3px) rotate(-45deg);
+			}
+		}
+	}
+}
+
+.login-background {
+	display: none;
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	background: rgba(0,0,0,0.5);
+	z-index: 1;
+	justify-content: center;
+	align-items: center;
+
+	& .login-form {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-evenly;
+		width: 400px;
+		height: 220px;
+		padding: 10px;
+		background: rgb(240,240,240);;
+		z-index: 2;
+	
+		& div.for-field {
+			width: 100%;
+			padding: 5px;
+			& label {
+				display: block;
+				color: #333;
+			}
+			& input {
+				display: block;
+				width: 100%;
+				color: gray;
+				background-color: transparent;
+				border: 1px solid rgba(0,0,0,0.2);
+				padding: 10px 10px;
+				outline: none;
+			}
+		}
+		& div.for-buttons {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			margin-top: 15px;
+			& button {
+				background: #03a9f4;
+				color: white;
+				padding: 10px 15px;
+				border: none;
+				margin: 0px 15px;
+				cursor: pointer;
 			}
 		}
 	}
