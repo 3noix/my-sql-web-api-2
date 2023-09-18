@@ -31,6 +31,8 @@ async function sleep(ms: number): Promise<void> {
 // @2: MAIN
 async function main() {
 	await sleep(1000);
+	trpc.onEntryLocked.subscribe(undefined,   {onData: onEntryLocked});
+	trpc.onEntryUnlocked.subscribe(undefined, {onData: onEntryUnlocked});
 	trpc.onEntryInserted.subscribe(undefined, {onData: onEntryInserted});
 	trpc.onEntryUpdated.subscribe(undefined,  {onData: onEntryUpdated});
 	trpc.onEntryDeleted.subscribe(undefined,  {onData: onEntryDeleted});
@@ -53,6 +55,14 @@ main();
 
 
 // @2: CALLBACKS OF NOTIFICATIONS
+function onEntryLocked(input: {entryId: number}): void {
+	console.log(`--> entry locked: ${input.entryId}`);
+}
+
+function onEntryUnlocked(input: {entryId: number}): void {
+	console.log(`--> entry unlocked: ${input.entryId}`);
+}
+
 function onEntryInserted(entry: Entry): void {
 	console.log(`--> entry inserted: ${JSON.stringify(entry,null,"\t")}`);
 }
@@ -61,8 +71,8 @@ function onEntryUpdated(entry: Entry): void {
 	console.log(`--> entry updated: ${JSON.stringify(entry,null,"\t")}`);
 }
 
-function onEntryDeleted(input: {deletedEntryId: number}): void {
-	console.log(`--> entry deleted: ${input.deletedEntryId}`);
+function onEntryDeleted(input: {entryId: number}): void {
+	console.log(`--> entry deleted: ${input.entryId}`);
 }
 
 

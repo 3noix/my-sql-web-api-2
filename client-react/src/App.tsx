@@ -78,8 +78,16 @@ export default function App() {
 		onData: token => {auth.logout()},
 		enabled: auth.isLoggedIn
 	});
+	trpc.onEntryLocked.useSubscription(undefined, {
+		onData: ({entryId, username}) => {data.lockEntry(entryId, username);},
+		enabled: auth.isLoggedIn
+	});
+	trpc.onEntryUnlocked.useSubscription(undefined, {
+		onData: ({entryId}) => {data.unlockEntry(entryId);},
+		enabled: auth.isLoggedIn
+	});
 	trpc.onEntryInserted.useSubscription(undefined, {
-		onData: newEntry => {data.appendEntry(newEntry);},
+		onData: newEntry => {data.appendEntry({...newEntry, lockedBy: null});},
 		enabled: auth.isLoggedIn
 	});
 	trpc.onEntryUpdated.useSubscription(undefined, {
@@ -87,7 +95,7 @@ export default function App() {
 		enabled: auth.isLoggedIn
 	});
 	trpc.onEntryDeleted.useSubscription(undefined, {
-		onData: ({deletedEntryId}) => {data.deleteEntry(deletedEntryId);},
+		onData: ({entryId}) => {data.deleteEntry(entryId);},
 		enabled: auth.isLoggedIn
 	});
 

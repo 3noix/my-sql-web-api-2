@@ -169,10 +169,24 @@ dialogAddEdit.setOnCancelClicked(handleAddEditCancel);
 
 
 // @1: notifications that don't need the token to be sent when subscribing
+trpc.onEntryLocked.subscribe(undefined, {
+	onData: ({entryId, username}) => {
+		if (!auth.isLoggedIn()) {return;}
+		mainPage.lockEntry(entryId, username);
+	}
+});
+
+trpc.onEntryUnlocked.subscribe(undefined, {
+	onData: ({entryId}) => {
+		if (!auth.isLoggedIn()) {return;}
+		mainPage.unlockEntry(entryId);
+	}
+});
+
 trpc.onEntryInserted.subscribe(undefined, {
 	onData: (newEntry) => {
 		if (!auth.isLoggedIn()) {return;}
-		mainPage.appendEntry(newEntry);
+		mainPage.appendEntry({...newEntry, lockedBy: null});
 	}
 });
 
@@ -184,9 +198,9 @@ trpc.onEntryUpdated.subscribe(undefined, {
 });
 
 trpc.onEntryDeleted.subscribe(undefined, {
-	onData: ({deletedEntryId}) => {
+	onData: ({entryId}) => {
 		if (!auth.isLoggedIn()) {return;}
-		mainPage.deleteEntry(deletedEntryId);
+		mainPage.deleteEntry(entryId);
 	}
 });
 

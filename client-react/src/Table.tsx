@@ -1,9 +1,10 @@
 import "./Table.scss";
-import {Entry} from "../../api-express-drizzle/src/db/types";
+import {EntryAndLock} from "../../api-express-drizzle/src/types";
+import {LockIcon} from "./LockIcon";
 
 
 export type TableProps = {
-	entries: Entry[];
+	entries: EntryAndLock[];
 	onHeaderClicked: () => void;
 	onBodyRowClicked: (entryId: number) => void;
 	selectedId: number;
@@ -24,7 +25,7 @@ export default function Table({entries, onHeaderClicked, onBodyRowClicked, selec
 			<tbody>
 				{entries.map(e => (
 					<tr key={e.id} onClick={() => onBodyRowClicked(e.id)} className={e.id === selectedId ? "selected" : undefined}>
-						<td>{e.id}</td>
+						<td>{e.id}{e.lockedBy !== null ? <LockIcon tooltip={`Locked by: "${e.lockedBy}"`}/> : ""}</td>
 						<td>{e.description}</td>
 						<td>{e.number}</td>
 						<td>{e.lastModif}</td>

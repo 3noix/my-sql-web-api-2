@@ -1,4 +1,5 @@
 import {Entry} from "../../api-express-drizzle/src/db/types";
+import {EntryAndLock} from "../../api-express-drizzle/src/types";
 
 
 export class MainPage {
@@ -8,6 +9,7 @@ export class MainPage {
 	private buttonRemove = document.querySelector("#remove") as HTMLButtonElement;
 	private tableHeader = document.querySelector("thead") as HTMLTableSectionElement;
 	private tableBody = document.querySelector("tbody") as HTMLTableSectionElement;
+	private templateLockIcon = document.querySelector("#template-icon-lock") as HTMLTemplateElement;
 
 	// @1: callbacks
 	private onAddClicked = () => {};
@@ -33,10 +35,10 @@ export class MainPage {
 		const selectedRow = document.querySelector("tbody tr.selected");
 		if (selectedRow == null) {return null;}
 
-		const id = parseInt((selectedRow.querySelector("td:nth-child(1)") as HTMLTableElement).innerHTML);
-		const description = (selectedRow.querySelector("td:nth-child(2)") as HTMLTableElement).innerHTML;
-		const number = parseInt((selectedRow.querySelector("td:nth-child(3)") as HTMLTableElement).innerHTML);
-		const lastModif = (selectedRow.querySelector("td:nth-child(4)") as HTMLTableElement).innerHTML;
+		const id = parseInt((selectedRow.children[0] as HTMLTableElement).innerHTML);
+		const description = (selectedRow.children[1] as HTMLTableElement).innerHTML;
+		const number = parseInt((selectedRow.children[2] as HTMLTableElement).innerHTML);
+		const lastModif = (selectedRow.children[3] as HTMLTableElement).innerHTML;
 		return {id, description, number, lastModif};
 	}
 
@@ -50,7 +52,7 @@ export class MainPage {
 		for (const tr of document.querySelectorAll("tbody tr")) {tr.remove();}
 	}
 
-	public appendEntry(e: Entry): void {
+	public appendEntry(e: EntryAndLock): void {
 		const line = document.createElement("tr");
 		const col1 = document.createElement("td");
 		const col2 = document.createElement("td");
@@ -66,6 +68,12 @@ export class MainPage {
 		line.appendChild(col4);
 		this.tableBody.appendChild(line);
 
+		if (e.lockedBy != null) {
+			const lockDiv = document.importNode(this.templateLockIcon.content, true).children[0] as HTMLDivElement;
+			lockDiv.dataset.tooltip = `Locked by: "${e.lockedBy}"`;
+			col1.appendChild(lockDiv);
+		}
+
 		line.addEventListener("click", () => {
 			for (const tr of document.querySelectorAll("tbody tr")) {tr.classList.remove("selected");}
 			line.classList.add("selected");
@@ -76,9 +84,10 @@ export class MainPage {
 		const elt = this.getEntryHtmlElement(e.id);
 		if (elt == null) {return false;}
 
-		(elt.querySelector("td:nth-child(2)") as HTMLTableElement).innerHTML = e.description;
-		(elt.querySelector("td:nth-child(3)") as HTMLTableElement).innerHTML = e.number.toString();
-		(elt.querySelector("td:nth-child(4)") as HTMLTableElement).innerHTML = e.lastModif;
+		(elt.children[1] as HTMLTableElement).innerHTML = e.description;
+		(elt.children[2] as HTMLTableElement).innerHTML = e.number.toString();
+		(elt.children[3] as HTMLTableElement).innerHTML = e.lastModif;
+
 		return true;
 	}
 
@@ -86,6 +95,31 @@ export class MainPage {
 		const elt = this.getEntryHtmlElement(entryId);
 		if (elt == null) {return false;}
 		elt.remove();
+		return true;
+	}
+
+	public lockEntry(entryId: number, lockedBy: string): boolean {
+		const elt = this.getEntryHtmlElement(entryId);
+		if (elt == null) {return false;}
+		const firstCol = elt.children[0] as HTMLTableElement;
+		if (firstCol.children.length > 0) {
+			const lockDiv = firstCol.children[0] as HTMLDivElement;
+			lockDiv.dataset.tooltip = `Locked by: "${lockedBy}"`;
+			return true;
+		}
+
+		const lockDiv = document.importNode(this.templateLockIcon.content, true).children[0] as HTMLDivElement;
+		lockDiv.dataset.tooltip = `Locked by: "${lockedBy}"`;
+		firstCol.appendChild(lockDiv);
+		return true;
+	}
+
+	public unlockEntry(entryId: number): boolean {
+		const elt = this.getEntryHtmlElement(entryId);
+		if (elt == null) {return false;}
+		const lockDiv = elt.querySelector(".icon-lock");
+		if (lockDiv == null) {return false;}
+		lockDiv.remove();
 		return true;
 	}
 
