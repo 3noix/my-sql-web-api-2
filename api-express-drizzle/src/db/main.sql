@@ -14,6 +14,6 @@ INSERT INTO Entries (id, description, number, last_modif) VALUES
 CREATE TRIGGER trigger_update_entry BEFORE UPDATE
 ON Entries FOR EACH ROW
 BEGIN
-	UPDATE Entries SET last_modif=datetime() WHERE id=NEW.id;
+	UPDATE Entries SET last_modif=datetime('now','localtime') WHERE id=NEW.id;
 END;
 
