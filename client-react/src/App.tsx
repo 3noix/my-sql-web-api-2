@@ -1,7 +1,7 @@
 import {useState, useCallback} from "react";
 import styled from "styled-components";
 import Button from "./Button";
-import {IconPlus, IconPencil, IconMinus} from "./icons";
+import {IconPlus, IconPencil, IconMinus, IconRefresh} from "./icons";
 import Table from "./Table";
 import FormLogin from "./FormLogin";
 import FormAddEdit, {FormAddEditData} from "./FormAddEdit";
@@ -23,10 +23,6 @@ const Section = styled.section`
 	flex-direction: column;
 	justify-content: flex-start;
 	align-items: center;
-`;
-
-const Main = styled.main`
-	width: calc(100% - 50px);
 `;
 
 
@@ -59,7 +55,7 @@ export default function App() {
 	}, [token]));
 
 	// get all entries at startup
-	trpc.getAllEntries.useQuery(undefined, {
+	const {refetch: refetchAllEntries} = trpc.getAllEntries.useQuery(undefined, {
 		onSuccess: allEntries => {
 			data.setAllEntries(allEntries);
 			console.log("All entries sent");
@@ -116,14 +112,17 @@ export default function App() {
 				<Button onClick={handleUpdateEntry}><IconPencil/></Button>
 				<Button onClick={handleDeleteEntry}><IconMinus/></Button>
 			</Section>
-			<Main>
+			<main>
 				<Table
 					entries={data.entries}
 					onHeaderClicked={deselectAllRows}
 					onBodyRowClicked={selectRow}
 					selectedId={selectedEntryId}
 				/>
-			</Main>
+			</main>
+			<Section>
+				<Button onClick={() => {refetchAllEntries()}}><IconRefresh/></Button>
+			</Section>
 			<FormAddEdit
 				isOpen={modalAddEditMode != "closed"}
 				initialData={modalAddEditData}

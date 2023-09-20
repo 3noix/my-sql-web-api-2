@@ -96,9 +96,16 @@ async function handleDeleteClicked() {
 	}
 }
 
+async function handleRefresh() {
+	mainPage.clearAllEntries();
+	const entries = await trpc.getAllEntries.query();
+	for (const e of entries) {mainPage.appendEntry(e);}
+}
+
 mainPage.setOnAddClicked(handleAddClicked);
 mainPage.setOnEditClicked(handleEditClicked);
 mainPage.setOnDeleteClicked(handleDeleteClicked);
+mainPage.setOnRefreshClicked(handleRefresh);
 
 
 // @1: add/edit dialog callbacks

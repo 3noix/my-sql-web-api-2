@@ -7,6 +7,7 @@ export class MainPage {
 	private buttonAdd = document.querySelector("#add") as HTMLButtonElement;
 	private buttonEdit = document.querySelector("#edit") as HTMLButtonElement;
 	private buttonRemove = document.querySelector("#remove") as HTMLButtonElement;
+	private buttonRefresh = document.querySelector("#refresh") as HTMLButtonElement;
 	private tableHeader = document.querySelector("thead") as HTMLTableSectionElement;
 	private tableBody = document.querySelector("tbody") as HTMLTableSectionElement;
 	private templateLockIcon = document.querySelector("#template-icon-lock") as HTMLTemplateElement;
@@ -15,6 +16,7 @@ export class MainPage {
 	private onAddClicked = () => {};
 	private onEditClicked = () => {};
 	private onDeleteClicked = () => {};
+	private onRefreshClicked = () => {};
 
 	// @1: constructor
 	public constructor() {
@@ -22,6 +24,7 @@ export class MainPage {
 		this.buttonAdd.addEventListener("click", this.onAddClicked);
 		this.buttonEdit.addEventListener("click", this.onEditClicked);
 		this.buttonRemove.addEventListener("click", this.onDeleteClicked);
+		this.buttonRefresh.addEventListener("click", this.onRefreshClicked);
 	}
 
 	// @1: functions
@@ -29,6 +32,7 @@ export class MainPage {
 		this.buttonAdd.disabled = !enabled;
 		this.buttonEdit.disabled = !enabled;
 		this.buttonRemove.disabled = !enabled;
+		this.buttonRefresh.disabled = !enabled;
 	}
 
 	public selectedEntry(): Entry| null {
@@ -148,5 +152,11 @@ export class MainPage {
 		this.buttonRemove.removeEventListener("click", this.onDeleteClicked);
 		this.onDeleteClicked = cb;
 		this.buttonRemove.addEventListener("click", this.onDeleteClicked);
+	}
+
+	public setOnRefreshClicked(cb: () => void): void {
+		this.buttonRefresh.removeEventListener("click", this.onRefreshClicked);
+		this.onRefreshClicked = cb;
+		this.buttonRefresh.addEventListener("click", this.onRefreshClicked);
 	}
 }
