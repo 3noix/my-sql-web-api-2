@@ -21,7 +21,11 @@ export class DialogLogin {
 	// @1: functions
 	public setVisible(visible: boolean): void {
 		this.background.style.display = visible ? "flex" : "none";
-		if (visible) {this.inputUsername.focus();}
+		if (visible) {
+			this.inputUsername.value = "";
+			this.inputPassword.value = "";
+			this.inputUsername.focus();
+		}
 	}
 
 	// @1: set callbacks

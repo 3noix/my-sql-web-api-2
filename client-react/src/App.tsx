@@ -1,7 +1,7 @@
 import {useState, useCallback} from "react";
 import styled from "styled-components";
 import Button from "./Button";
-import {IconPlus, IconPencil, IconMinus, IconRefresh} from "./icons";
+import {IconPlus, IconPencil, IconMinus, IconRefresh, IconLogout} from "./icons";
 import Table from "./Table";
 import FormLogin from "./FormLogin";
 import FormAddEdit, {FormAddEditData} from "./FormAddEdit";
@@ -107,6 +107,7 @@ export default function App() {
 	// @2: main window
 	return (
 		<Root>
+			<IconLogout onClick={handleLogout}/>
 			<Section>
 				<Button onClick={handleAddEntry}><IconPlus/></Button>
 				<Button onClick={handleUpdateEntry}><IconPencil/></Button>
@@ -199,7 +200,12 @@ export default function App() {
 		}
 	}
 
-	// @2: add/edit/delete buttons callbacks
+	// @2: logout/add/edit/delete buttons callbacks
+	async function handleLogout() {
+		if (token == undefined) {return;}
+		await logout({token});
+	}
+
 	function handleAddEntry() {
 		setModalAddEditMode("open-add");
 		setModalAddEditData(defaultModalData);

@@ -97,15 +97,30 @@ async function handleDeleteClicked() {
 }
 
 async function handleRefresh() {
-	mainPage.clearAllEntries();
-	const entries = await trpc.getAllEntries.query();
-	for (const e of entries) {mainPage.appendEntry(e);}
+	try {
+		mainPage.clearAllEntries();
+		const entries = await trpc.getAllEntries.query();
+		for (const e of entries) {mainPage.appendEntry(e);}
+	}
+	catch (error) {
+		alert(error);
+	}
+}
+
+async function handleLogout() {
+	try {
+		await trpc.logout.mutate({token: auth.token()});
+	}
+	catch (error) {
+		alert(error);
+	}
 }
 
 mainPage.setOnAddClicked(handleAddClicked);
 mainPage.setOnEditClicked(handleEditClicked);
 mainPage.setOnDeleteClicked(handleDeleteClicked);
 mainPage.setOnRefreshClicked(handleRefresh);
+mainPage.setOnLogoutClicked(handleLogout);
 
 
 // @1: add/edit dialog callbacks

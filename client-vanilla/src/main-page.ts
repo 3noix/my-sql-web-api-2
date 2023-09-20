@@ -4,6 +4,7 @@ import {EntryAndLock} from "../../api-express-drizzle/src/types";
 
 export class MainPage {
 	// @1: elements
+	private buttonLogout = document.querySelector("#logout") as HTMLButtonElement;
 	private buttonAdd = document.querySelector("#add") as HTMLButtonElement;
 	private buttonEdit = document.querySelector("#edit") as HTMLButtonElement;
 	private buttonRemove = document.querySelector("#remove") as HTMLButtonElement;
@@ -13,6 +14,7 @@ export class MainPage {
 	private templateLockIcon = document.querySelector("#template-icon-lock") as HTMLTemplateElement;
 
 	// @1: callbacks
+	private onLogoutClicked = () => {};
 	private onAddClicked = () => {};
 	private onEditClicked = () => {};
 	private onDeleteClicked = () => {};
@@ -21,6 +23,7 @@ export class MainPage {
 	// @1: constructor
 	public constructor() {
 		this.tableHeader.addEventListener("click", this.deselectAllRows);
+		this.buttonLogout.addEventListener("click", this.onLogoutClicked);
 		this.buttonAdd.addEventListener("click", this.onAddClicked);
 		this.buttonEdit.addEventListener("click", this.onEditClicked);
 		this.buttonRemove.addEventListener("click", this.onDeleteClicked);
@@ -136,6 +139,12 @@ export class MainPage {
 	}
 
 	// @1: set callbacks
+	public setOnLogoutClicked(cb: () => void): void {
+		this.buttonLogout.removeEventListener("click", this.onLogoutClicked);
+		this.onLogoutClicked = cb;
+		this.buttonLogout.addEventListener("click", this.onLogoutClicked);
+	}
+
 	public setOnAddClicked(cb: () => void): void {
 		this.buttonAdd.removeEventListener("click", this.onAddClicked);
 		this.onAddClicked = cb;

@@ -23,6 +23,16 @@ body {
 	flex-direction: row;
 }
 
+#logout {
+	color: white;
+	cursor: pointer;
+	width: 25px;
+	height: 25px;
+	position: absolute;
+	top: 25px;
+	right: 25px;
+}
+
 section {
 	width: 50px;
 	display: flex;
