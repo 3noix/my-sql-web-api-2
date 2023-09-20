@@ -3,17 +3,16 @@ import "./Button.scss";
 
 
 export type ButtonProps = {
-	iconClass: string;
+	children?: React.ReactNode;
 	disabled?: boolean;
 	onClick: React.MouseEventHandler;
 };
 
 
-export default function Button({iconClass, disabled, onClick}: ButtonProps) {
+export default function Button({disabled, onClick, children}: ButtonProps) {
 	return (
 		<button type="button" onClick={onClick} disabled={disabled || false}>
-			<i className={iconClass}></i>
+			{children}
 		</button>
 	);
 }
-

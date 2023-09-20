@@ -1,6 +1,7 @@
 import {useState, useCallback} from "react";
 import styled from "styled-components";
 import Button from "./Button";
+import {IconPlus, IconPencil, IconMinus} from "./icons";
 import Table from "./Table";
 import FormLogin from "./FormLogin";
 import FormAddEdit, {FormAddEditData} from "./FormAddEdit";
@@ -111,9 +112,9 @@ export default function App() {
 	return (
 		<Root>
 			<Section>
-				<Button iconClass="fas fa-plus"       onClick={handleAddEntry}/>
-				<Button iconClass="fas fa-pencil-alt" onClick={handleUpdateEntry}/>
-				<Button iconClass="fas fa-minus"      onClick={handleDeleteEntry}/>
+				<Button onClick={handleAddEntry}><IconPlus/></Button>
+				<Button onClick={handleUpdateEntry}><IconPencil/></Button>
+				<Button onClick={handleDeleteEntry}><IconMinus/></Button>
 			</Section>
 			<Main>
 				<Table

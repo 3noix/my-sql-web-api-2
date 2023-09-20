@@ -6,7 +6,10 @@ section button {
 	background: none;
 	border-radius: 5px;
 	cursor: pointer;
-	& i {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	& svg {
 		color: white;
 	}
 }
