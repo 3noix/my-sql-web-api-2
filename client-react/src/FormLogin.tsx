@@ -26,8 +26,8 @@ export default function FormLogin() {
 
 	const {mutateAsync: login} = trpc.login.useMutation({
 		onSuccess: ({token}) => {
-			const username = loginRef.current?.value || "";
-			const password = passwordRef.current?.value || "";
+			const username = loginRef.current?.value ?? "";
+			const password = passwordRef.current?.value ?? "";
 			auth.login(username, password, token);
 		},
 		onError: (error) => {
@@ -42,8 +42,8 @@ export default function FormLogin() {
 	};
 
 	const onOkClicked = async () => {
-		const username = loginRef.current?.value || "";
-		const password = passwordRef.current?.value || "";
+		const username = loginRef.current?.value ?? "";
+		const password = passwordRef.current?.value ?? "";
 
 		if (username.length <= 2 || password.length <= 2) {
 			alert(`Authentication failed!`);

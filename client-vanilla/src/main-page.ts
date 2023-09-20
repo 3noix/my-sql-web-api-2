@@ -132,7 +132,7 @@ export class MainPage {
 
 	private getEntryHtmlElement(entryId: number): HTMLTableElement | null {
 		for (const htmlRow of document.querySelectorAll("tbody tr")) {
-			const currentId = parseInt(htmlRow.querySelector("td:nth-child(1)")?.innerHTML || "-1");
+			const currentId = parseInt(htmlRow.children[0]?.innerHTML ?? "-1");
 			if (currentId === entryId) {return htmlRow as HTMLTableElement;}
 		}
 		return null;

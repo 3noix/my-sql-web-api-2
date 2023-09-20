@@ -86,7 +86,6 @@ const lock = trpc.procedure
 		entryId: z.number(),
 		token: z.string().uuid()
 	}))
-	.output(z.boolean())
 	.mutation(req => {
 		if (env.trpc.logProcCalls) {console.log(`lock: id=${req.input.entryId}`);}
 
@@ -99,15 +98,14 @@ const lock = trpc.procedure
 		const tokenLocking = lockers.get(req.input.entryId);
 		if (tokenLocking !== undefined) {
 			const userLockingData = sessions.get(tokenLocking);
-			const userNameLocking = userLockingData?.username || "??";
+			const userNameLocking = userLockingData?.username ?? "??";
 			throw new Error(`The id #${req.input.entryId} is already locked by ${userNameLocking}`);
 		}
 
 		// lock it
-		const username = sessions.get(req.input.token)?.username || "??";
+		const username = sessions.get(req.input.token)?.username ?? "??";
 		lockers.set(req.input.entryId, req.input.token);
 		ee.emit("locked", {entryId: req.input.entryId, username});
-		return true;
 });
 
 const onEntryLocked = trpc.procedure.subscription(() => {
@@ -122,7 +120,6 @@ const unlock = trpc.procedure
 		entryId: z.number(),
 		token: z.string().uuid()
 	}))
-	.output(z.boolean())
 	.mutation(req => {
 		if (env.trpc.logProcCalls) {console.log(`unlock: id=${req.input.entryId}`);}
 
@@ -136,7 +133,6 @@ const unlock = trpc.procedure
 		// unlock it
 		lockers.delete(req.input.entryId);
 		ee.emit("unlocked", {entryId: req.input.entryId});
-		return true;
 });
 
 const onEntryUnlocked = trpc.procedure.subscription(() => {
@@ -155,7 +151,7 @@ const getAllEntries = trpc.procedure
 		const entries = await q.getAllEntries();
 		return entries.map(e => {
 			const tokenLocking = lockers.get(e.id);
-			const username = (tokenLocking !== undefined) ? (sessions.get(tokenLocking)?.username || null) : null;
+			const username = (tokenLocking !== undefined) ? (sessions.get(tokenLocking)?.username ?? null) : null;
 			return {...e, lockedBy: username};
 		});
 	});

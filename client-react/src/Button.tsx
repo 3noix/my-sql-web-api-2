@@ -11,7 +11,7 @@ export type ButtonProps = {
 
 export default function Button({disabled, onClick, children}: ButtonProps) {
 	return (
-		<button type="button" onClick={onClick} disabled={disabled || false}>
+		<button type="button" onClick={onClick} disabled={disabled ?? false}>
 			{children}
 		</button>
 	);

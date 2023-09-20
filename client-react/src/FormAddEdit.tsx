@@ -66,8 +66,8 @@ export default function FormAddEdit({isOpen, initialData, onOk, onCancel}: FormA
 
 	function handleOk() {
 		// checks
-		const description = descriptionRef.current?.value || "";
-		const number = parseInt(numberRef.current?.value || "");
+		const description = descriptionRef.current?.value ?? "";
+		const number = parseInt(numberRef.current?.value ?? "");
 		if (description.length === 0) {return;}
 		if (Number.isNaN(number)) {return;}
 
